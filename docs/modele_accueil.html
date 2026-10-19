@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediConsult -- Clinique Privee</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* === PALETTE FROM YOUR REPO (tailwind.config.js) === */
+  --primary-50:#eff6ff;
+  --primary-100:#dbeafe;
+  --primary-200:#bfdbfe;
+  --primary-300:#93c5fd;
+  --primary-400:#60a5fa;
+  --primary-500:#3b82f6;
+  --primary-600:#2563eb;
+  --primary-700:#1d4ed8;
+  --primary-800:#1e40af;
+  --primary-900:#1e3a8a;
+  --medical:#0ea5e9;
+  --medical-light:#e0f2fe;
+  --medical-dark:#0369a1;
+  /* Grays from repo */
+  --gray-50:#f9fafb;
+  --gray-100:#f3f4f6;
+  --gray-200:#e5e7eb;
+  --gray-300:#d1d5db;
+  --gray-500:#6b7280;
+  --gray-600:#4b5563;
+  --gray-700:#374151;
+  --gray-800:#1f2937;
+  --gray-900:#111827;
+  /* Accents from repo */
+  --green-600:#16a34a;
+  --purple-100:#f3e8ff;
+  --purple-600:#9333ea;
+  --amber-400:#fbbf24;
+  --red-500:#ef4444;
+  /* Semantic */
+  --bg-page:#f9fafb;
+  --bg-alt:#ffffff;
+  --bg-dark:#111827;
+  --bg-dark-card:#1f2937;
+  --text-primary:#111827;
+  --text-secondary:#4b5563;
+  --text-muted:#6b7280;
+  --text-white:#f9fafb;
+  --glass-light:rgba(255,255,255,0.6);
+  --glass-border:rgba(255,255,255,0.4);
+  --radius:12px;
+  --radius-lg:20px;
+  --radius-xl:28px;
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md:0 8px 30px rgba(0,0,0,0.08);
+  --shadow-lg:0 20px 60px rgba(0,0,0,0.1);
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg-page);color:var(--text-primary);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+
+/* ========== NAVBAR ========== */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 48px;display:flex;align-items:center;justify-content:space-between;transition:all .4s cubic-bezier(.4,0,.2,1)}
+.navbar.scrolled{background:rgba(249,250,251,0.88);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--gray-200);padding:14px 48px}
+.nav-logo{font-size:1.5rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.03em}
+.nav-logo span{font-weight:400;color:var(--primary-600)}
+.nav-links{display:flex;gap:36px;align-items:center}
+.nav-links a{font-size:.875rem;font-weight:500;color:var(--text-muted);transition:color .3s;letter-spacing:-0.01em}
+.nav-links a:hover{color:var(--text-primary)}
+.nav-cta{padding:10px 28px;background:var(--primary-600);border:none;border-radius:8px;color:white;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .3s;letter-spacing:-0.01em}
+.nav-cta:hover{background:var(--primary-700);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,0.3)}
+
+/* ========== HERO ========== */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:120px 48px 80px;background:linear-gradient(135deg,var(--primary-50) 0%,var(--bg-page) 50%,var(--medical-light) 100%);overflow:hidden}
+.hero-content{max-width:620px;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.12);border-radius:100px;font-size:.78rem;font-weight:500;color:var(--primary-600);margin-bottom:28px}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--primary-500);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+.hero h1{font-size:clamp(2.5rem,5vw,3.8rem);font-weight:800;line-height:1.05;margin-bottom:20px;letter-spacing:-0.04em;color:var(--text-primary)}
+.hero h1 .accent{color:var(--primary-600)}
+.hero p{font-size:1.1rem;color:var(--text-secondary);max-width:500px;line-height:1.7;font-weight:400;margin-bottom:36px;letter-spacing:-0.01em}
+.hero-buttons{display:flex;gap:14px;flex-wrap:wrap}
+.btn-primary{padding:15px 32px;background:var(--primary-600);border:none;border-radius:var(--radius);color:white;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:-0.01em;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--primary-700);transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,0.3)}
+.btn-secondary{padding:15px 32px;background:white;border:1px solid var(--gray-200);border-radius:var(--radius);color:var(--text-primary);font-size:.95rem;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:-0.01em;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{border-color:var(--gray-300);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.hero-visual{position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:55%;height:90%;pointer-events:none;z-index:1}
+#hero-canvas{width:100%;height:100%}
+
+/* ========== ORB TRANSITION / GLASSMORPHISM ========== */
+.orb-transition{position:relative;padding:0;margin:-80px 0;z-index:3;display:flex;align-items:center;justify-content:center;min-height:500px;overflow:visible}
+#orb-canvas{width:100%;height:500px;display:block}
+.glass-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:24px;z-index:4;width:max-content}
+.glass-card{background:rgba(255,255,255,0.6);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.5);border-radius:var(--radius-lg);padding:32px 28px;min-width:200px;text-align:center;transition:all .4s;box-shadow:0 8px 32px rgba(0,0,0,0.06)}
+.glass-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(37,99,235,0.1);background:rgba(255,255,255,0.75)}
+.glass-card .card-number{font-size:2.2rem;font-weight:800;color:var(--primary-600);letter-spacing:-0.03em;line-height:1}
+.glass-card .card-label{font-size:.82rem;color:var(--text-muted);margin-top:6px;font-weight:500}
+
+/* ========== SECTIONS COMMON ========== */
+.section{position:relative;z-index:2;padding:100px 48px}
+.section-header{text-align:center;margin-bottom:64px}
+.section-label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--primary-600);margin-bottom:10px}
+.section-title{font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:800;line-height:1.12;letter-spacing:-0.03em;color:var(--text-primary)}
+.section-subtitle{font-size:1rem;color:var(--text-muted);margin-top:14px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7}
+
+/* ========== SERVICES ========== */
+.services-section{background:white}
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.service-card{background:var(--bg-page);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:36px 30px;transition:all .4s;position:relative;overflow:hidden}
+.service-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:rgba(37,99,235,0.2)}
+.service-card.featured{border-color:rgba(37,99,235,0.2);background:linear-gradient(135deg,var(--primary-50),var(--bg-page))}
+.service-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:1.3rem}
+.service-icon.blue{background:var(--primary-100);color:var(--primary-600)}
+.service-icon.cyan{background:var(--medical-light);color:var(--medical-dark)}
+.service-icon.green{background:#dcfce7;color:var(--green-600)}
+.service-icon.purple{background:var(--purple-100);color:var(--purple-600)}
+.service-card h3{font-size:1.15rem;font-weight:700;margin-bottom:10px;letter-spacing:-0.02em}
+.service-card p{font-size:.9rem;color:var(--text-muted);line-height:1.65}
+.service-tag{display:inline-block;padding:4px 12px;background:rgba(37,99,235,0.08);border-radius:100px;font-size:.7rem;font-weight:600;color:var(--primary-600);margin-top:14px;text-transform:uppercase;letter-spacing:.04em}
+
+/* ========== HEARTBEAT TRANSITION ========== */
+.heartbeat-transition{position:relative;padding:0;margin:0;z-index:3;display:flex;align-items:center;justify-content:center;height:400px;overflow:hidden;background:linear-gradient(180deg,white 0%,var(--primary-50) 50%,white 100%)}
+#heartbeat-canvas{width:100%;height:100%;display:block}
+.heartbeat-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:5;pointer-events:none}
+.heartbeat-overlay h3{font-size:1.3rem;font-weight:700;color:var(--primary-600);letter-spacing:-0.02em;margin-bottom:6px}
+.heartbeat-overlay p{font-size:.85rem;color:var(--text-muted);font-weight:400}
+
+/* ========== PROCESS ========== */
+.process-section{background:var(--bg-page)}
+.process-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;max-width:900px;margin:0 auto;position:relative}
+.process-grid::before{content:'';position:absolute;top:36px;left:18%;right:18%;height:2px;background:linear-gradient(90deg,transparent,var(--primary-500),transparent);opacity:.2}
+.step-card{text-align:center;position:relative}
+.step-number{width:56px;height:56px;border-radius:50%;background:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;margin:0 auto 20px;color:white;box-shadow:0 4px 20px rgba(37,99,235,0.25)}
+.step-card h3{font-size:1.05rem;font-weight:700;margin-bottom:10px;letter-spacing:-0.02em}
+.step-card p{font-size:.88rem;color:var(--text-muted);line-height:1.6;max-width:260px;margin:0 auto}
+
+/* ========== EQUIPE ========== */
+.equipe-section{background:white}
+.equipe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.doctor-card{background:var(--bg-page);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;transition:all .4s}
+.doctor-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(37,99,235,0.15)}
+.doctor-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary-500),var(--primary-700));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.3rem;font-weight:700;color:white}
+.doctor-card h4{font-size:.95rem;font-weight:700;letter-spacing:-0.01em}
+.doctor-card .specialty{font-size:.8rem;color:var(--primary-600);font-weight:500;margin-top:4px}
+.doctor-card .status{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:.72rem;font-weight:600;color:var(--green-600);text-transform:uppercase;letter-spacing:.03em}
+.doctor-card .status .dot-green{width:5px;height:5px;border-radius:50%;background:var(--green-600)}
+
+/* ========== TESTIMONIALS ========== */
+.testimonials-section{background:var(--bg-page)}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.testimonial-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:32px 28px;transition:all .4s}
+.testimonial-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.testimonial-stars{color:var(--amber-400);font-size:.85rem;margin-bottom:14px;letter-spacing:2px}
+.testimonial-text{font-size:.92rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:12px}
+.testimonial-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary-500),var(--primary-700));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:white}
+.testimonial-name{font-weight:600;font-size:.85rem}
+.testimonial-role{font-size:.72rem;color:var(--text-muted)}
+
+/* ========== CTA SECTION ========== */
+.cta-section{position:relative;z-index:2;padding:100px 48px;background:var(--bg-dark);text-align:center;overflow:hidden}
+.cta-section::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(37,99,235,0.15),transparent 70%);pointer-events:none}
+.cta-box{max-width:650px;margin:0 auto;position:relative;z-index:1}
+.cta-box h2{font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:800;color:var(--text-white);margin-bottom:16px;letter-spacing:-0.03em}
+.cta-box p{color:rgba(249,250,251,0.6);font-size:1rem;margin-bottom:32px;line-height:1.7}
+.btn-white{padding:15px 36px;background:white;border:none;border-radius:var(--radius);color:var(--text-primary);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:-0.01em}
+.btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,255,255,0.15)}
+
+/* ========== FOOTER ========== */
+.footer{background:var(--bg-dark);padding:40px 48px;border-top:1px solid rgba(255,255,255,0.06)}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-left{font-size:.82rem;color:rgba(249,250,251,0.5)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:.78rem;color:rgba(249,250,251,0.5);transition:color .3s}
+.footer-links a:hover{color:var(--primary-400)}
+
+/* ========== SCROLL REVEAL ========== */
+.reveal{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.4,0,.2,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:.1s}
+.reveal-d2{transition-delay:.2s}
+.reveal-d3{transition-delay:.3s}
+.reveal-d4{transition-delay:.4s}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:1024px){
+  .hero-visual{display:none}
+  .hero{justify-content:center;text-align:center}
+  .hero-content{max-width:700px}
+  .hero p{margin-left:auto;margin-right:auto}
+  .hero-buttons{justify-content:center}
+  .services-grid{grid-template-columns:repeat(2,1fr)}
+  .equipe-grid{grid-template-columns:repeat(2,1fr)}
+  .glass-cards{flex-wrap:wrap;width:90%;justify-content:center}
+}
+@media(max-width:768px){
+  .navbar{padding:14px 20px}
+  .nav-links{display:none}
+  .hero{padding:100px 24px 60px}
+  .section{padding:72px 24px}
+  .services-grid,.process-grid,.testimonials-grid{grid-template-columns:1fr}
+  .equipe-grid{grid-template-columns:repeat(2,1fr)}
+  .glass-cards{flex-direction:column;align-items:center}
+  .glass-card{min-width:160px}
+  .cta-section{padding:72px 24px}
+  .heartbeat-transition{height:280px}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-logo">Medi<span>Consult</span></div>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#equipe">Notre equipe</a>
+    <a href="#parcours">Comment ca marche</a>
+    <a href="#temoignages">Avis</a>
+    <button class="nav-cta" onclick="window.location.href='/login'">Se connecter</button>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge reveal"><span class="dot"></span> Clinique privee -- Consultations ouvertes</div>
+    <h1 class="reveal reveal-d1">Votre sante merite<br><span class="accent">le meilleur soin</span></h1>
+    <p class="reveal reveal-d2">Pre-consultation en ligne et prise de rendez-vous simplifiee. Accedez a nos specialistes sans attente inutile.</p>
+    <div class="hero-buttons reveal reveal-d3">
+      <button class="btn-primary" onclick="window.location.href='/preconsultation'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Pre-consultation
+      </button>
+      <button class="btn-secondary" onclick="window.location.href='/rendez-vous'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Prendre rendez-vous
+      </button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <canvas id="hero-canvas"></canvas>
+  </div>
+</section>
+
+<!-- ========== ORB TRANSITION + GLASS STATS ========== -->
+<section class="orb-transition">
+  <canvas id="orb-canvas"></canvas>
+  <div class="glass-cards">
+    <div class="glass-card reveal">
+      <div class="card-number" data-count="15000">0</div>
+      <div class="card-label">Patients suivis</div>
+    </div>
+    <div class="glass-card reveal reveal-d1">
+      <div class="card-number" data-count="50">0</div>
+      <div class="card-label">Specialistes</div>
+    </div>
+    <div class="glass-card reveal reveal-d2">
+      <div class="card-number" data-count="98">0</div>
+      <div class="card-label">% Satisfaction</div>
+    </div>
+    <div class="glass-card reveal reveal-d3">
+      <div class="card-number" data-count="12">0</div>
+      <div class="card-label">Specialites</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SERVICES ========== -->
+<section class="section services-section" id="services">
+  <div class="section-header reveal">
+    <div class="section-label">Nos services</div>
+    <div class="section-title">Un accompagnement medical complet</div>
+    <div class="section-subtitle">De la pre-consultation au suivi post-visite, tout est pense pour votre confort.</div>
+  </div>
+  <div class="services-grid">
+    <div class="service-card featured reveal">
+      <div class="service-icon blue">&#9764;</div>
+      <h3>Pre-consultation en ligne</h3>
+      <p>Decrivez vos symptomes avant votre visite. Notre equipe prepare votre dossier pour un rendez-vous plus efficace.</p>
+      <span class="service-tag">Le plus utilise</span>
+    </div>
+    <div class="service-card reveal reveal-d1">
+      <div class="service-icon cyan">&#128197;</div>
+      <h3>Prise de rendez-vous</h3>
+      <p>Reservez en ligne en quelques clics. Choisissez votre specialiste et le creneau qui vous convient.</p>
+    </div>
+    <div class="service-card reveal reveal-d2">
+      <div class="service-icon green">&#128200;</div>
+      <h3>Suivi medical</h3>
+      <p>Retrouvez votre historique, ordonnances et resultats d'examens dans votre espace securise.</p>
+    </div>
+    <div class="service-card reveal reveal-d1">
+      <div class="service-icon purple">&#128172;</div>
+      <h3>Messagerie securisee</h3>
+      <p>Echangez directement avec votre medecin traitant de maniere confidentielle.</p>
+    </div>
+    <div class="service-card reveal reveal-d2">
+      <div class="service-icon blue">&#128203;</div>
+      <h3>Dossier medical numerique</h3>
+      <p>Vos donnees centralisees, accessibles a tout moment et partagees uniquement avec votre accord.</p>
+    </div>
+    <div class="service-card reveal reveal-d3">
+      <div class="service-icon cyan">&#128274;</div>
+      <h3>Securite des donnees</h3>
+      <p>Chiffrement bout en bout, conformite aux normes de sante. Vos informations restent privees.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3D HEARTBEAT TRANSITION ========== -->
+<section class="heartbeat-transition">
+  <canvas id="heartbeat-canvas"></canvas>
+  <div class="heartbeat-overlay reveal">
+    <h3>Au coeur de votre sante</h3>
+    <p>Une equipe dediee qui veille sur vous</p>
+  </div>
+</section>
+
+<!-- ========== EQUIPE ========== -->
+<section class="section equipe-section" id="equipe">
+  <div class="section-header reveal">
+    <div class="section-label">Notre equipe</div>
+    <div class="section-title">Des specialistes a votre ecoute</div>
+    <div class="section-subtitle">Une equipe pluridisciplinaire dediee a votre prise en charge.</div>
+  </div>
+  <div class="equipe-grid">
+    <div class="doctor-card reveal">
+      <div class="doctor-avatar">MD</div>
+      <h4>Dr. Moussa Diallo</h4>
+      <div class="specialty">Medecine Generale</div>
+      <div class="status"><span class="dot-green"></span> Disponible</div>
+    </div>
+    <div class="doctor-card reveal reveal-d1">
+      <div class="doctor-avatar">AN</div>
+      <h4>Dr. Aissatou Ndiaye</h4>
+      <div class="specialty">Cardiologie</div>
+      <div class="status"><span class="dot-green"></span> Disponible</div>
+    </div>
+    <div class="doctor-card reveal reveal-d2">
+      <div class="doctor-avatar">IS</div>
+      <h4>Dr. Ibrahim Sow</h4>
+      <div class="specialty">Pediatrie</div>
+      <div class="status"><span class="dot-green"></span> Disponible</div>
+    </div>
+    <div class="doctor-card reveal reveal-d3">
+      <div class="doctor-avatar">FB</div>
+      <h4>Dr. Fatou Ba</h4>
+      <div class="specialty">Dermatologie</div>
+      <div class="status"><span class="dot-green"></span> Disponible</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== COMMENT CA MARCHE ========== -->
+<section class="section process-section" id="parcours">
+  <div class="section-header reveal">
+    <div class="section-label">Comment ca marche</div>
+    <div class="section-title">Trois etapes simples</div>
+    <div class="section-subtitle">Un parcours pense pour vous faire gagner du temps.</div>
+  </div>
+  <div class="process-grid">
+    <div class="step-card reveal">
+      <div class="step-number">1</div>
+      <h3>Connectez-vous</h3>
+      <p>Creez votre compte ou connectez-vous a votre espace patient en quelques secondes.</p>
+    </div>
+    <div class="step-card reveal reveal-d2">
+      <div class="step-number">2</div>
+      <h3>Choisissez votre service</h3>
+      <p>Pre-consultation en ligne ou prise de rendez-vous directe avec un specialiste.</p>
+    </div>
+    <div class="step-card reveal reveal-d4">
+      <div class="step-number">3</div>
+      <h3>Recevez votre suivi</h3>
+      <p>Consultez vos resultats et echangez avec votre medecin depuis votre espace.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TEMOIGNAGES ========== -->
+<section class="section testimonials-section" id="temoignages">
+  <div class="section-header reveal">
+    <div class="section-label">Avis patients</div>
+    <div class="section-title">Ce qu'ils disent de nous</div>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card reveal">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"J'ai pu decrire mes symptomes en ligne et avoir mon rendez-vous le lendemain avec un cardiologue. Vraiment rapide et pratique."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AM</div>
+        <div><div class="testimonial-name">Aminata M.</div><div class="testimonial-role">Patiente depuis 2024</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal reveal-d1">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"Le suivi est impeccable. Toutes mes ordonnances et resultats sont accessibles au meme endroit. Fini les papiers perdus."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">OD</div>
+        <div><div class="testimonial-name">Ousmane D.</div><div class="testimonial-role">Patient depuis 2023</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal reveal-d2">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"En tant que maman, pouvoir faire la pre-consultation pour mon enfant sans me deplacer, c'est un vrai soulagement."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">FN</div>
+        <div><div class="testimonial-name">Fatou N.</div><div class="testimonial-role">Patiente depuis 2024</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CTA FINAL ========== -->
+<section class="cta-section">
+  <div class="cta-box reveal">
+    <h2>Pret a consulter ?</h2>
+    <p>Commencez votre pre-consultation ou prenez rendez-vous directement avec l'un de nos specialistes.</p>
+    <button class="btn-white" onclick="window.location.href='/login'">Acceder a mon espace</button>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">&copy; 2026 MediConsult -- Clinique Privee. Tous droits reserves.</div>
+    <div class="footer-links">
+      <a href="#">Confidentialite</a>
+      <a href="#">Conditions</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ========== THREE.JS CDN ==========
+const s=document.createElement('script');
+s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+s.onload=initAll;
+document.head.appendChild(s);
+
+function initAll(){
+  initHeroOrb();
+  initTransitionOrb();
+  initHeartbeat();
+}
+
+// ========== HERO ORB (subtle wireframe sphere, right side) ==========
+function initHeroOrb(){
+  const canvas=document.getElementById('hero-canvas');
+  if(!canvas)return;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,canvas.clientWidth/canvas.clientHeight,0.1,100);
+  camera.position.z=4;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+
+  const geo=new THREE.IcosahedronGeometry(1.5,4);
+  const mat=new THREE.MeshBasicMaterial({color:0x2563eb,wireframe:true,transparent:true,opacity:0.1});
+  const sphere=new THREE.Mesh(geo,mat);
+  scene.add(sphere);
+
+  const glowGeo=new THREE.IcosahedronGeometry(1.6,3);
+  const glowMat=new THREE.MeshBasicMaterial({color:0x0ea5e9,transparent:true,opacity:0.04});
+  const glow=new THREE.Mesh(glowGeo,glowMat);
+  scene.add(glow);
+
+  const pCount=200;
+  const pGeo=new THREE.BufferGeometry();
+  const pPos=new Float32Array(pCount*3);
+  for(let i=0;i<pCount*3;i++)pPos[i]=(Math.random()-0.5)*6;
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  const pMat=new THREE.PointsMaterial({color:0x3b82f6,size:0.015,transparent:true,opacity:0.35});
+  const particles=new THREE.Points(pGeo,pMat);
+  scene.add(particles);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    sphere.rotation.x+=0.001;
+    sphere.rotation.y+=0.002;
+    glow.rotation.x-=0.0005;
+    glow.rotation.y-=0.001;
+    particles.rotation.y+=0.0003;
+    renderer.render(scene,camera);
+  }
+  animate();
+  window.addEventListener('resize',()=>{
+    camera.aspect=canvas.clientWidth/canvas.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+  });
+}
+
+// ========== TRANSITION ORB (central, glassmorphism backdrop) ==========
+function initTransitionOrb(){
+  const canvas=document.getElementById('orb-canvas');
+  if(!canvas)return;
+  const w=canvas.clientWidth,h=500;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(50,w/h,0.1,100);
+  camera.position.z=5;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(w,h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+
+  const coreGeo=new THREE.IcosahedronGeometry(1.8,5);
+  const coreMat=new THREE.MeshBasicMaterial({color:0x2563eb,wireframe:true,transparent:true,opacity:0.07});
+  const core=new THREE.Mesh(coreGeo,coreMat);
+  scene.add(core);
+
+  const midGeo=new THREE.IcosahedronGeometry(2.0,3);
+  const midMat=new THREE.MeshBasicMaterial({color:0x0ea5e9,wireframe:true,transparent:true,opacity:0.04});
+  const mid=new THREE.Mesh(midGeo,midMat);
+  scene.add(mid);
+
+  const outerGeo=new THREE.IcosahedronGeometry(2.3,2);
+  const outerMat=new THREE.MeshBasicMaterial({color:0x3b82f6,transparent:true,opacity:0.02});
+  const outer=new THREE.Mesh(outerGeo,outerMat);
+  scene.add(outer);
+
+  const pCount=300;
+  const pGeo=new THREE.BufferGeometry();
+  const pPos=new Float32Array(pCount*3);
+  for(let i=0;i<pCount;i++){
+    const theta=Math.random()*Math.PI*2;
+    const phi=Math.acos(2*Math.random()-1);
+    const r=2.2+Math.random()*1.5;
+    pPos[i*3]=r*Math.sin(phi)*Math.cos(theta);
+    pPos[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
+    pPos[i*3+2]=r*Math.cos(phi);
+  }
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  const pMat=new THREE.PointsMaterial({color:0x2563eb,size:0.02,transparent:true,opacity:0.3});
+  const particles=new THREE.Points(pGeo,pMat);
+  scene.add(particles);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    core.rotation.x+=0.0015;
+    core.rotation.y+=0.002;
+    mid.rotation.x-=0.001;
+    mid.rotation.y+=0.0015;
+    outer.rotation.y-=0.0005;
+    particles.rotation.y+=0.0004;
+    particles.rotation.x+=0.0002;
+    renderer.render(scene,camera);
+  }
+  animate();
+  window.addEventListener('resize',()=>{
+    const nw=canvas.parentElement.clientWidth;
+    camera.aspect=nw/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw,h);
+  });
+}
+
+// ========== 3D HEARTBEAT WAVE (before Equipe section) ==========
+function initHeartbeat(){
+  const canvas=document.getElementById('heartbeat-canvas');
+  if(!canvas)return;
+  const w=canvas.clientWidth,h=canvas.clientHeight||400;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(55,w/h,0.1,200);
+  camera.position.set(0,8,18);
+  camera.lookAt(0,0,0);
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(w,h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+
+  // --- 3D heartbeat waveform plane ---
+  const planeW=40,planeH=20,segW=200,segH=100;
+  const geo=new THREE.PlaneGeometry(planeW,planeH,segW,segH);
+  const mat=new THREE.MeshBasicMaterial({color:0x2563eb,wireframe:true,transparent:true,opacity:0.12,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.rotation.x=-Math.PI/2.8;
+  scene.add(mesh);
+
+  // Second layer (medical accent)
+  const geo2=new THREE.PlaneGeometry(planeW,planeH,segW,segH);
+  const mat2=new THREE.MeshBasicMaterial({color:0x0ea5e9,wireframe:true,transparent:true,opacity:0.06,side:THREE.DoubleSide});
+  const mesh2=new THREE.Mesh(geo2,mat2);
+  mesh2.rotation.x=-Math.PI/2.8;
+  mesh2.position.y=0.3;
+  scene.add(mesh2);
+
+  // Glow particles along wave
+  const glowCount=150;
+  const glowGeo=new THREE.BufferGeometry();
+  const glowPos=new Float32Array(glowCount*3);
+  for(let i=0;i<glowCount;i++){
+    glowPos[i*3]=(Math.random()-0.5)*planeW;
+    glowPos[i*3+1]=0;
+    glowPos[i*3+2]=(Math.random()-0.5)*planeH;
+  }
+  glowGeo.setAttribute('position',new THREE.BufferAttribute(glowPos,3));
+  const glowMat=new THREE.PointsMaterial({color:0x3b82f6,size:0.08,transparent:true,opacity:0.5});
+  const glowPts=new THREE.Points(glowGeo,glowMat);
+  glowPts.rotation.x=-Math.PI/2.8;
+  scene.add(glowPts);
+
+  const posAttr=geo.attributes.position;
+  const posAttr2=geo2.attributes.position;
+  const origY=new Float32Array(posAttr.count);
+  for(let i=0;i<posAttr.count;i++) origY[i]=posAttr.getY(i);
+
+  // ECG-like heartbeat shape
+  function ecg(t){
+    t=((t%1)+1)%1;
+    if(t<0.1) return 0;
+    if(t<0.15) return Math.sin((t-0.1)*Math.PI/0.05)*0.3; // small P wave
+    if(t<0.2) return 0;
+    if(t<0.22) return -0.2; // Q dip
+    if(t<0.28) return -0.2+((t-0.22)/0.06)*3.2; // QRS rise
+    if(t<0.34) return 3.0-((t-0.28)/0.06)*3.5; // QRS fall to S
+    if(t<0.38) return -0.5+((t-0.34)/0.04)*0.5; // S recovery
+    if(t<0.5) return 0;
+    if(t<0.6) return Math.sin((t-0.5)*Math.PI/0.1)*0.6; // T wave
+    return 0;
+  }
+
+  let time=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    time+=0.008;
+
+    for(let i=0;i<posAttr.count;i++){
+      const x=posAttr.getX(i);
+      const z=posAttr.getZ(i);
+      const wave=ecg((x/planeW+0.5)-time*0.3);
+      const fade=1-Math.abs(z)/(planeH*0.5);
+      const h=wave*2.5*Math.max(fade,0.1);
+      posAttr.setY(i,origY[i]+h);
+      posAttr2.setY(i,origY[i]+h*0.7+0.15);
+    }
+    posAttr.needsUpdate=true;
+    posAttr2.needsUpdate=true;
+
+    // Animate glow particles
+    const gp=glowGeo.attributes.position;
+    for(let i=0;i<glowCount;i++){
+      const x=gp.getX(i);
+      const z=gp.getZ(i);
+      const wave=ecg((x/planeW+0.5)-time*0.3);
+      const fade=1-Math.abs(z)/(planeH*0.5);
+      gp.setY(i,wave*2.5*Math.max(fade,0.1)+0.1);
+    }
+    gp.needsUpdate=true;
+
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    const nw=canvas.parentElement.clientWidth;
+    const nh=canvas.parentElement.clientHeight||400;
+    camera.aspect=nw/nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw,nh);
+  });
+}
+
+// ========== NAVBAR SCROLL ==========
+const navbar=document.getElementById('navbar');
+window.addEventListener('scroll',()=>{
+  navbar.classList.toggle('scrolled',window.scrollY>50);
+});
+
+// ========== SCROLL REVEAL ==========
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) entry.target.classList.add('visible');
+  });
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ========== COUNTER ANIMATION ==========
+const counterObs=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      const el=entry.target;
+      const target=parseInt(el.dataset.count);
+      let current=0;
+      const inc=target/50;
+      const timer=setInterval(()=>{
+        current+=inc;
+        if(current>=target){current=target;clearInterval(timer);}
+        if(target===98) el.textContent=Math.floor(current)+'%';
+        else if(target===15000) el.textContent=Math.floor(current).toLocaleString('fr-FR')+'+';
+        else el.textContent=Math.floor(current).toLocaleString('fr-FR');
+      },30);
+      counterObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+document.querySelectorAll('[data-count]').forEach(el=>counterObs.observe(el));
+</script>
+</body>
+</html>
