@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('nom', 100);
             $table->string('prenom', 100);
             $table->string('email')->unique();
-            $table->string('telephone', 30)->nullable();
+            $table->string('telephone', 30);
             $table->string('password');
             $table->string('role', 20);
             $table->boolean('actif')->default(true);

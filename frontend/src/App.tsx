@@ -4,6 +4,9 @@ import RequireRole from './auth/RequireRole'
 import Layout from './components/Layout'
 import PageEnConstruction from './components/PageEnConstruction'
 import Accueil from './pages/Accueil'
+import Connexion from './pages/Connexion'
+import Inscription from './pages/Inscription'
+import Utilisateurs from './pages/admin/Utilisateurs'
 import PageIntrouvable from './pages/PageIntrouvable'
 
 export default function App() {
@@ -15,8 +18,8 @@ export default function App() {
             {/* Pages publiques */}
             <Route index element={<Accueil />} />
             <Route path="specialites" element={<PageEnConstruction titre="Spécialités" module={3} />} />
-            <Route path="connexion" element={<PageEnConstruction titre="Connexion" module={2} />} />
-            <Route path="inscription" element={<PageEnConstruction titre="Inscription" module={2} />} />
+            <Route path="connexion" element={<Connexion />} />
+            <Route path="inscription" element={<Inscription />} />
 
             {/* Espace patient */}
             <Route path="patient" element={<RequireRole roles={['patient']} />}>
@@ -41,7 +44,7 @@ export default function App() {
             {/* Espace administrateur */}
             <Route path="admin" element={<RequireRole roles={['administrateur']} />}>
               <Route index element={<PageEnConstruction titre="Statistiques" module={9} />} />
-              <Route path="utilisateurs" element={<PageEnConstruction titre="Gestion des utilisateurs" module={2} />} />
+              <Route path="utilisateurs" element={<Utilisateurs />} />
               <Route path="specialites" element={<PageEnConstruction titre="Gestion des spécialités" module={3} />} />
             </Route>
 

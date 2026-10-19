@@ -19,6 +19,17 @@ export function initialiserCsrf() {
   return api.get('/sanctum/csrf-cookie')
 }
 
+/** Premier message d'erreur de validation (422) de chaque champ. */
+export function erreursChamps(erreur: unknown): Record<string, string> {
+  if (axios.isAxiosError(erreur)) {
+    const errors = (erreur.response?.data as { errors?: Record<string, string[]> } | undefined)?.errors
+    if (errors) {
+      return Object.fromEntries(Object.entries(errors).map(([champ, messages]) => [champ, messages[0]]))
+    }
+  }
+  return {}
+}
+
 /** Message lisible à partir d'une erreur Axios (validation 422, 409, 403…). */
 export function messageErreur(erreur: unknown, parDefaut = 'Une erreur est survenue. Veuillez réessayer.'): string {
   if (axios.isAxiosError(erreur)) {

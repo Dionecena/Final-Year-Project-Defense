@@ -35,7 +35,7 @@ class SocleTest extends TestCase
 
     public function test_le_seeder_administrateur_lit_les_identifiants_de_la_configuration(): void
     {
-        config(['auth.administrateur_initial' => ['email' => 'admin@exemple.test', 'password' => 'secret-de-test']]);
+        config(['auth.administrateur_initial' => ['email' => 'admin@exemple.test', 'password' => 'secret-de-test', 'telephone' => '00 000 00 00']]);
 
         $this->seed(AdministrateurSeeder::class);
 
@@ -65,7 +65,7 @@ class SocleTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
-        DB::table('users')->insert(['nom' => 'X', 'prenom' => 'Y', 'email' => 'x@exemple.test', 'password' => 'x', 'role' => 'invite']);
+        DB::table('users')->insert(['nom' => 'X', 'prenom' => 'Y', 'email' => 'x@exemple.test', 'telephone' => '0', 'password' => 'x', 'role' => 'invite']);
     }
 
     public function test_les_contraintes_check_des_disponibilites(): void

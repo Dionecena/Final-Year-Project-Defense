@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Resources\UtilisateurResource;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Admin\UtilisateurController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SpecialiteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,10 +13,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- Routes publiques -------------------------------------------------------------
+Route::post('/inscription', [AuthController::class, 'inscription']);
+Route::get('/specialites', [SpecialiteController::class, 'index']);
 
 // --- Routes authentifiées ---------------------------------------------------------
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
-    Route::get('/moi', fn (Request $request) => new UtilisateurResource($request->user()->load('medecin.specialite')));
+    Route::get('/moi', [AuthController::class, 'moi']);
+
+    // Administrateur
+    Route::middleware('role:administrateur')->prefix('admin')->group(function () {
+        Route::get('/utilisateurs', [UtilisateurController::class, 'index']);
+        Route::post('/utilisateurs', [UtilisateurController::class, 'store']);
+        Route::get('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'show']);
+        Route::patch('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'update']);
+        Route::post('/utilisateurs/{utilisateur}/desactivation', [UtilisateurController::class, 'desactiver']);
+    });
 
 });

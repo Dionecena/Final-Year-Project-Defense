@@ -122,6 +122,7 @@ return [
     'administrateur_initial' => [
         'email' => env('ADMIN_EMAIL'),
         'password' => env('ADMIN_PASSWORD'),
+        'telephone' => env('ADMIN_TELEPHONE'),
     ],
 
     'demo_password' => env('DEMO_PASSWORD'),

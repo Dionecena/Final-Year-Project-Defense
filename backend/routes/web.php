@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
-| Connexion et déconnexion de la SPA (Sanctum, session et cookie) : module 2.
+| Connexion et déconnexion de la SPA (Sanctum : session, cookie et jeton CSRF).
 */
+Route::post('/login', [AuthController::class, 'connexion']);
+Route::post('/logout', [AuthController::class, 'deconnexion'])->middleware('auth:web');
 
 /*
 | Démonstration : la SPA React compilée (npm run build) est servie par Laravel depuis

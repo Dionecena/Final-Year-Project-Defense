@@ -13,9 +13,10 @@ class AdministrateurSeeder extends Seeder
     {
         $email = config('auth.administrateur_initial.email');
         $password = config('auth.administrateur_initial.password');
+        $telephone = config('auth.administrateur_initial.telephone');
 
-        if (blank($email) || blank($password)) {
-            throw new RuntimeException('Renseignez ADMIN_EMAIL et ADMIN_PASSWORD dans le fichier .env avant de lancer ce seeder.');
+        if (blank($email) || blank($password) || blank($telephone)) {
+            throw new RuntimeException('Renseignez ADMIN_EMAIL, ADMIN_PASSWORD et ADMIN_TELEPHONE dans le fichier .env avant de lancer ce seeder.');
         }
 
         $admin = User::firstOrNew(['email' => $email]);
@@ -28,6 +29,7 @@ class AdministrateurSeeder extends Seeder
         $admin->fill([
             'nom' => 'Administrateur',
             'prenom' => 'Compte',
+            'telephone' => $telephone,
             'role' => Role::Administrateur->value,
             'actif' => true,
         ])->save();

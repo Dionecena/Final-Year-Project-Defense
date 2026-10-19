@@ -100,7 +100,8 @@ class DemoSeeder extends Seeder
         $user->fill([
             'nom' => $nom,
             'prenom' => $prenom,
-            'telephone' => null,
+            // Numéro manifestement fictif.
+            'telephone' => '00 000 00 00',
             'role' => $role->value,
             'actif' => true,
         ])->save();
