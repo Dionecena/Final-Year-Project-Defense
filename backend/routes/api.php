@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\SpecialiteController as AdminSpecialiteController;
 use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Medecin\PlanningController;
+use App\Http\Controllers\Secretariat\MedecinController;
 use App\Http\Controllers\SpecialiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,19 @@ Route::get('/specialites', [SpecialiteController::class, 'index']);
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     Route::get('/moi', [AuthController::class, 'moi']);
+
+    // Secrétaire : plannings des médecins. RG14 : aucune route PUT, PATCH ni DELETE
+    // sur les disponibilités, tout changement passe par une indisponibilité (module 7).
+    Route::middleware('role:secretaire')->group(function () {
+        Route::get('/medecins', [MedecinController::class, 'index']);
+        Route::get('/medecins/{medecin}/planning', [MedecinController::class, 'planning']);
+        Route::post('/medecins/{medecin}/disponibilites', [MedecinController::class, 'ajouterDisponibilite']);
+    });
+
+    // Médecin : son propre planning, en lecture seule (RG12).
+    Route::middleware('role:medecin')->prefix('medecin')->group(function () {
+        Route::get('/planning', [PlanningController::class, 'show']);
+    });
 
     // Administrateur
     Route::middleware('role:administrateur')->prefix('admin')->group(function () {

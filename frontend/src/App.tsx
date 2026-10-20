@@ -8,6 +8,8 @@ import Connexion from './pages/Connexion'
 import Inscription from './pages/Inscription'
 import GestionSpecialites from './pages/admin/GestionSpecialites'
 import Utilisateurs from './pages/admin/Utilisateurs'
+import MonPlanning from './pages/medecin/MonPlanning'
+import PlanningMedecins from './pages/secretariat/PlanningMedecins'
 import Specialites from './pages/Specialites'
 import PageIntrouvable from './pages/PageIntrouvable'
 
@@ -33,14 +35,14 @@ export default function App() {
             {/* Espace secrétaire */}
             <Route path="secretariat" element={<RequireRole roles={['secretaire']} />}>
               <Route index element={<PageEnConstruction titre="Rendez-vous" module={5} />} />
-              <Route path="planning" element={<PageEnConstruction titre="Planning des médecins" module={4} />} />
+              <Route path="planning" element={<PlanningMedecins />} />
               <Route path="indisponibilites" element={<PageEnConstruction titre="Indisponibilités" module={7} />} />
               <Route path="a-reprogrammer" element={<PageEnConstruction titre="Rendez-vous à reprogrammer" module={7} />} />
             </Route>
 
             {/* Espace médecin */}
             <Route path="medecin" element={<RequireRole roles={['medecin']} />}>
-              <Route index element={<PageEnConstruction titre="Mon planning" module={4} />} />
+              <Route index element={<MonPlanning />} />
             </Route>
 
             {/* Espace administrateur */}

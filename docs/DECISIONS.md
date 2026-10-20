@@ -59,3 +59,32 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 - Pas de `SpecialitePolicy` à enregistrer : le nom suit la convention de Laravel.
 - Vérification dans le navigateur avec des comptes temporaires `verif.*@exemple.test` (les
   identifiants de `.env` ne sont pas lus par l'assistant), effacés par `migrate:fresh`.
+
+## Module 4 — plannings
+
+- **Chevauchement refusé** (validé par l'auteur) : une plage qui chevauche une disponibilité du
+  même médecin et du même jour est refusée (422, message indiquant la plage existante). Des plages
+  contiguës (09:00–12:00 puis 12:00–14:00) sont acceptées.
+- **Route ajoutée `GET /api/medecins`** (secrétaire, lecture seule ; validée par l'auteur, écart
+  par rapport à la section 14) : liste des médecins (id, nom, prénom, spécialité, actif) pour le
+  choix du médecin. Les médecins désactivés y figurent, en fin de liste, marqués « désactivé ».
+- **Rendez-vous annulés affichés** dans le planning avec leur statut (validé par l'auteur).
+- RG14 : aucune route PUT, PATCH ni DELETE sur les disponibilités (T13 : 404/405 vérifiés).
+- Validation de l'ajout : `jour_semaine` 1–7, heures au format HH:MM, fin postérieure au début,
+  `duree_creneau` entier ≥ 1. Ajouts décidés : la durée du créneau ne doit pas dépasser la durée
+  de la plage (sinon aucun créneau, section 8.1) ; un médecin désactivé ne reçoit aucune
+  disponibilité (422 sur `medecin_id`) ; un identifiant qui n'est pas un médecin renvoie 404.
+- Planning : `GET /api/medecins/{id}/planning?date=AAAA-MM-JJ` (secrétaire) et
+  `GET /api/medecin/planning?date=` (médecin connecté, fiche lue sur la session, aucun paramètre
+  de médecin accepté). Semaine du lundi au dimanche contenant la date (aujourd'hui par défaut).
+  Réponse : `medecin`, `semaine {du, au}`, `disponibilites`, `indisponibilites` qui touchent la
+  semaine, `rendez_vous` (date, heure, statut, nom et prénom du patient seulement). Aucune donnée
+  de préconsultation (module 6). Dates et heures renvoyées en chaînes dans le fuseau
+  Africa/Dakar, pour ne pas dépendre du fuseau du navigateur.
+- Service `PlanningService` (lecture) ; l'ajout d'une disponibilité, trivial, reste dans le
+  contrôleur après validation par `StoreDisponibiliteRequest`.
+- Écrans : composant partagé `components/Planning.tsx` (vue semaine en colonnes sur grand écran,
+  en liste sur smartphone ; vue jour), prêt à afficher indisponibilités et rendez-vous des
+  modules 5 et 7. Le médecin et la date choisis sont conservés dans l'URL.
+- Vérification dans le navigateur avec des comptes temporaires (secrétaire de vérification, mot
+  de passe du médecin de démonstration de cardiologie changé), effacés par `migrate:fresh`.

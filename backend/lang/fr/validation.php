@@ -79,6 +79,7 @@ return [
         'symptomes' => 'symptômes',
         'medecin_id' => 'médecin',
         'date_heure' => 'date et heure',
+        'date' => 'date',
         'du' => 'date de début',
         'au' => 'date de fin',
     ],

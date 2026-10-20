@@ -22,6 +22,43 @@ export interface Specialite {
   nombre_medecins?: number
 }
 
+export interface Medecin {
+  /** Identifiant du compte (users.id = medecins.user_id). */
+  id: number
+  nom: string
+  prenom: string
+  actif: boolean
+  specialite: { id: number; libelle: string }
+}
+
+export interface Disponibilite {
+  id: number
+  medecin_id: number
+  /** 1 = lundi … 7 = dimanche. */
+  jour_semaine: number
+  heure_debut: string
+  heure_fin: string
+  duree_creneau: number
+}
+
+/** Planning d'une semaine (lundi à dimanche), dates et heures dans le fuseau Africa/Dakar. */
+export interface Planning {
+  medecin: Medecin
+  semaine: { du: string; au: string }
+  disponibilites: Disponibilite[]
+  indisponibilites: { id: number; date_debut: string; date_fin: string; motif: string | null }[]
+  rendez_vous: {
+    id: number
+    date: string
+    heure: string
+    statut: StatutRdv
+    statut_libelle: string
+    patient: { nom: string; prenom: string }
+  }[]
+}
+
+export const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] as const
+
 export const LIBELLES_ROLE: Record<Role, string> = {
   patient: 'Patient',
   secretaire: 'Secrétaire',
