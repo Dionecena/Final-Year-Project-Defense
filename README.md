@@ -8,7 +8,8 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités), 8 (notifications) et 9 (statistiques) terminés ; module 10 en cours (tâche planifiée faite ; finitions responsives, ngrok et rapport à venir). Ce README est complété à chaque module.
+> État : les dix modules du cahier des charges sont réalisés. Bilan, résultats des tests et écarts :
+> [`RAPPORT.md`](RAPPORT.md). Journal des décisions : [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## Prérequis
 
@@ -52,7 +53,22 @@ Supabase sert **uniquement** de base PostgreSQL : ni Supabase Auth, ni Storage, 
    - sinon **Session pooler** (port 5432, IPv4) : l'utilisateur est de la forme `postgres.<ref-projet>` ;
    - **ne pas utiliser le Transaction pooler (port 6543)** : il n'accepte pas les requêtes préparées.
 3. Reporter l'hôte, le port, la base, l'utilisateur et le mot de passe dans `DB_HOST`, `DB_PORT`,
-   `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, avec `DB_SSLMODE=require`.
+   `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, avec `DB_SSLMODE=require`. Le mot de passe est celui
+   de la base (Project Settings → Database → *Reset database password* si on l'a oublié).
+
+Pour savoir si le poste dispose d'IPv6, dans PowerShell :
+`Test-NetConnection db.<ref-projet>.supabase.co -Port 5432` (`TcpTestSucceeded : False` → session pooler).
+Exemple de configuration avec le session pooler :
+
+```
+DB_CONNECTION=pgsql
+DB_HOST=aws-0-eu-west-2.pooler.supabase.com
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres.<ref-projet>
+DB_PASSWORD=<mot de passe de la base>
+DB_SSLMODE=require
+```
 
 Le schéma est créé **uniquement** par les migrations Laravel, jamais à la main dans la console Supabase.
 Utiliser **exclusivement des données fictives** (hébergement hors du Sénégal, loi n° 2008-12).
@@ -151,6 +167,70 @@ Pour la supprimer après la démonstration :
 ```
 schtasks /Delete /TN "CroixBleue - planificateur Laravel" /F
 ```
+
+## Mise à disposition avec ngrok
+
+Sanctum en mode SPA exige que la SPA et l'API aient **la même origine** : on n'ouvre donc **qu'un seul
+tunnel**. Prérequis : un compte ngrok et `ngrok config add-authtoken <jeton>` (une seule fois).
+Le compte gratuit attribue un domaine fixe du type `<sous-domaine>.ngrok-free.dev`, affiché au
+lancement de `ngrok http …` (et dans le tableau de bord ngrok, *Domains*).
+
+### 1. Configurer `backend/.env` pour ce domaine
+
+```
+APP_URL=https://<sous-domaine>.ngrok-free.dev
+SANCTUM_STATEFUL_DOMAINS=<sous-domaine>.ngrok-free.dev,localhost:5173,127.0.0.1:5173,localhost:8000,127.0.0.1:8000
+SESSION_DOMAIN=<sous-domaine>.ngrok-free.dev
+SESSION_SECURE_COOKIE=true
+```
+
+puis `php artisan config:clear`. Variante pratique : laisser `SESSION_DOMAIN=` **vide** (cookie
+limité à l'hôte qui l'a émis) permet d'utiliser à la fois `http://localhost:5173` et l'adresse ngrok
+sans changer la configuration (les navigateurs acceptent les cookies `Secure` sur `localhost`).
+Pour revenir au développement local seul : `APP_URL=http://localhost:5173`, `SESSION_DOMAIN=` (vide)
+et `SESSION_SECURE_COOKIE=false`.
+
+**Performances avec Supabase** : garder `DB_PERSISTENT=true` (réutilise la connexion TLS) et activer
+OPcache dans le `php.ini` de Laragon (`zend_extension=opcache`, `opcache.enable=1`,
+`opcache.enable_cli=1`), car `php artisan serve` relit sinon tout Laravel à chaque requête.
+
+### 2a. En développement : tunnel sur le serveur Vite
+
+```bash
+cd backend && php artisan serve --host=127.0.0.1 --port=8000
+```
+
+```bash
+cd frontend && npm run dev
+```
+
+```bash
+ngrok http 5173
+```
+
+Vite accepte les domaines ngrok (`server.allowedHosts` dans `vite.config.ts`) et relaie l'API vers Laravel.
+
+### 2b. Pour la démonstration : SPA compilée servie par Laravel
+
+```bash
+cd frontend && npm run build
+```
+
+```bash
+cd backend && php artisan serve --host=127.0.0.1 --port=8000
+```
+
+```bash
+ngrok http 8000
+```
+
+`npm run build` écrit la SPA dans `backend/public/spa` ; la route de repli de `routes/web.php` renvoie
+`index.html` pour toute URL qui n'est ni l'API ni Sanctum. Lancer aussi `php artisan queue:work`
+(courriels) et le planificateur (voir ci-dessus).
+
+Le compte ngrok gratuit affiche une page d'avertissement à la première visite d'un navigateur :
+cliquer sur **Visit Site**. Avant chaque démonstration : vérifier que le projet Supabase n'est pas en
+pause, lancer les serveurs, puis ouvrir l'adresse ngrok sur un smartphone.
 
 ## Tests
 

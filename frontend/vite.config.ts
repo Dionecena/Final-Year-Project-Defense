@@ -16,7 +16,7 @@ export default defineConfig(({ command, mode }) => {
       port: 5173,
       strictPort: true,
       // Autorise le domaine du tunnel ngrok (même origine pour la SPA et l'API).
-      allowedHosts: ['.ngrok-free.app', '.ngrok.app', '.ngrok.io'],
+      allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io'],
       // Une seule origine : Vite relaie l'API, Sanctum et l'authentification vers Laravel.
       // changeOrigin reste à false pour que Laravel voie l'hôte réel (cookies, Sanctum).
       proxy: {

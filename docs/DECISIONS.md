@@ -307,3 +307,41 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 - Vérification : `schedule:list` (prochaine exécution à l'heure pleine), `schedule:test`, puis sur la base
   de développement un rendez-vous confirmé fictif daté de trois jours plus tôt, passé à « passé » par la
   commande, puis supprimé.
+
+## Module 10 — finitions, Supabase, ngrok et rapport
+
+- **Module 5 tranché par l'auteur** : seule la secrétaire change le médecin d'un rendez-vous ; le
+  patient ne change que le créneau avec le même médecin (`UpdateRendezVousRequest::after`, 422 sur
+  `medecin_id` ; l'écran du patient ne propose que les créneaux de son médecin). Décisions des
+  modules 7 et 9 validées par l'auteur.
+- **Accueil** à partir de `docs/modele_accueil.html` : hero, encadré RG13, cartes « verre » (seul
+  chiffre affiché : le nombre de spécialités, lu par l'API), services réels (réservation,
+  préconsultation avec mention RG03, courriels), onde cardiaque, spécialités et jours de présence
+  (à la place de l'équipe et des témoignages), trois étapes, appel final. three.js 0.180.0 en paquet
+  npm, chargé à la demande dans un fichier séparé, jamais sous 768 px ni avec `prefers-reduced-motion`.
+  Police Inter auto-hébergée (`@fontsource-variable/inter` 5.2.8). La page occupe toute la largeur
+  (`Layout` : `pleineLargeur` sur `/`).
+- **Accessibilité** : nom accessible des boutons radio des spécialités (remarque du module 6) ; tous
+  les écrans vérifiés à 375 px (aucun défilement horizontal) avec les quatre rôles.
+- **Supabase** : projet « final-year-project-defense » (réf. `qkdijfrqjqfolxqmkdxv`, eu-west-2,
+  PostgreSQL 17.11), **session pooler** `aws-0-eu-west-2.pooler.supabase.com:5432` (le poste n'a pas
+  d'IPv6). Schéma créé par `migrate --seed` puis `DemoSeeder` ; index unique partiel et six contraintes
+  CHECK vérifiés. Remarque : les tables d'un autre projet (« Dionecena's Project ») ont d'abord été
+  supprimées à la demande de l'auteur, avant qu'il précise le bon projet ; ce projet-là n'est pas utilisé.
+- **Migration ajoutée `2025_01_01_000008_proteger_tables_api_supabase`** : RLS activée sans politique
+  sur toutes les tables et droits retirés à `anon`/`authenticated` (API REST générée de Supabase
+  fermée, section 10). Vérifié : `anon` reçoit « permission denied » ; Laravel (propriétaire) lit
+  normalement. Sans effet sur la base locale de test.
+- **Performances** : `DB_PERSISTENT` (option `PDO::ATTR_PERSISTENT` dans `config/database.php`) et
+  OPcache activé dans le `php.ini` de Laragon. Mesures en local avec Supabase : `/up` 0,6 s → 0,04 s,
+  `/api/specialites` 1,5 s → 0,45 s. À travers ngrok : une action prend environ 1 s, une connexion
+  environ 2,5 s (tunnel environ 0,4 s par requête, environ 70 ms par requête SQL vers Londres). Les
+  sessions restent en base (`SESSION_DRIVER=database`).
+- **ngrok** : domaine du compte `chemist-hardcover-unsecured.ngrok-free.dev` (suffixe `.ngrok-free.dev`,
+  ajouté à `server.allowedHosts` de Vite). `.env` : `APP_URL` sur ce domaine, domaine ajouté à
+  `SANCTUM_STATEFUL_DOMAINS`, `SESSION_SECURE_COOKIE=true`. `SESSION_DOMAIN` est laissé **vide**
+  (cookie limité à l'hôte) : la même configuration sert pour `localhost` et pour le tunnel. Vérifiés à
+  travers le tunnel : mode démonstration (`ngrok http 8000`, SPA compilée servie par Laravel ;
+  connexion du patient, `/api/moi`, mes rendez-vous) et mode développement (`ngrok http 5173`, client
+  Vite ; connexion de la secrétaire, liste du secrétariat).
+- `RAPPORT.md` rédigé ; README complété (Supabase, ngrok, performances).

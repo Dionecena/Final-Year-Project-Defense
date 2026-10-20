@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { LIBELLES_ROLE, type Role } from '../types'
 
@@ -45,6 +45,8 @@ function classeLien({ isActive }: { isActive: boolean }) {
 export default function Layout() {
   const { utilisateur, deconnecter } = useAuth()
   const navigate = useNavigate()
+  // La page d'accueil occupe toute la largeur (sections pleine page du modèle).
+  const pleineLargeur = useLocation().pathname === '/'
   const [menuOuvert, setMenuOuvert] = useState(false)
 
   const liens = utilisateur ? LIENS_ROLE[utilisateur.role] : LIENS_PUBLICS
@@ -119,7 +121,7 @@ export default function Layout() {
         </div>
       </header>
 
-      <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main id="contenu" className={pleineLargeur ? 'w-full flex-1' : 'mx-auto w-full max-w-6xl flex-1 px-4 py-6'}>
         <Outlet />
       </main>
 

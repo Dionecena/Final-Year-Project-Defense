@@ -215,7 +215,7 @@ export default function PriseRendezVous() {
                       specialite?.id === s.id ? 'border-primaire-600 ring-2 ring-primaire-600/30' : 'border-gray-200'
                     }`}
                   >
-                    <input type="radio" name="specialite" className="mt-1" checked={specialite?.id === s.id} onChange={() => choisirSpecialite(s)} />
+                    <input type="radio" name="specialite" value={s.id} aria-label={s.libelle} className="mt-1" checked={specialite?.id === s.id} onChange={() => choisirSpecialite(s)} />
                     <span>
                       <span className="block font-semibold text-gray-900">{s.libelle}</span>
                       {s.description && <span className="block text-sm text-gray-600">{s.description}</span>}

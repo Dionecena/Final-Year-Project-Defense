@@ -71,6 +71,7 @@ export function SelecteurCreneau({
   selection,
   onChoisir,
   exclure,
+  medecinFixe = false,
 }: {
   creneaux: Creneaux
   /** '' : tous les médecins. */
@@ -80,6 +81,8 @@ export function SelecteurCreneau({
   onChoisir: (creneau: Creneau) => void
   /** Créneau à ne pas proposer (celui du rendez-vous à modifier). */
   exclure?: { medecinId: number; dateHeure: string }
+  /** Le médecin ne peut pas être changé : la liste des médecins n'est pas affichée. */
+  medecinFixe?: boolean
 }) {
   const [nbJours, setNbJours] = useState(JOURS_PAR_PAGE)
 
@@ -108,25 +111,27 @@ export function SelecteurCreneau({
 
   return (
     <div className="space-y-4">
-      <Liste
-        label="Médecin"
-        className="max-w-sm"
-        value={medecinId}
-        onChange={(e) => {
-          onMedecin(e.target.value)
-          setNbJours(JOURS_PAR_PAGE)
-        }}
-      >
-        <option value="">Tous les médecins de la spécialité</option>
-        {medecinId && !medecins.some((m) => String(m.id) === medecinId) && (
-          <option value={medecinId}>Médecin actuel (aucun créneau libre)</option>
-        )}
-        {medecins.map((m) => (
-          <option key={m.id} value={m.id}>
-            {nomMedecin(m)}
-          </option>
-        ))}
-      </Liste>
+      {!medecinFixe && (
+        <Liste
+          label="Médecin"
+          className="max-w-sm"
+          value={medecinId}
+          onChange={(e) => {
+            onMedecin(e.target.value)
+            setNbJours(JOURS_PAR_PAGE)
+          }}
+        >
+          <option value="">Tous les médecins de la spécialité</option>
+          {medecinId && !medecins.some((m) => String(m.id) === medecinId) && (
+            <option value={medecinId}>Médecin actuel (aucun créneau libre)</option>
+          )}
+          {medecins.map((m) => (
+            <option key={m.id} value={m.id}>
+              {nomMedecin(m)}
+            </option>
+          ))}
+        </Liste>
+      )}
 
       {jours.length === 0 ? (
         <Alerte type="info">
@@ -255,6 +260,7 @@ export function ModificationRendezVous({
           selection={selection}
           onChoisir={setSelection}
           exclure={{ medecinId: rendezVous.medecin.id, dateHeure: rendezVous.date_heure }}
+          medecinFixe={memeMedecin}
         />
       ) : (
         !erreurChargement && (

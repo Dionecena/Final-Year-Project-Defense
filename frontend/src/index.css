@@ -2,7 +2,7 @@
 
 /* Palette sobre reprise du modèle de page d'accueil fourni (bleu médical). */
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --color-primaire-50: #eff6ff;
   --color-primaire-100: #dbeafe;
   --color-primaire-600: #2563eb;

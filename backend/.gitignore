@@ -25,3 +25,4 @@ Thumbs.db
 
 .env.testing
 /public/spa
+.env.local-backup

@@ -97,6 +97,11 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Base distante (Supabase) : réutiliser la connexion TLS d'une requête à l'autre évite
+            // d'en ouvrir une nouvelle (≈ 0,7 s) à chaque appel de l'API.
+            'options' => extension_loaded('pdo_pgsql') ? [
+                PDO::ATTR_PERSISTENT => (bool) env('DB_PERSISTENT', false),
+            ] : [],
         ],
 
         'sqlsrv' => [
