@@ -7,6 +7,9 @@ use App\Exceptions\CreneauDejaReserveException;
 use App\Models\Medecin;
 use App\Models\RendezVous;
 use App\Models\User;
+use App\Notifications\AnnulationRendezVous;
+use App\Notifications\ConfirmationRendezVous;
+use App\Notifications\ModificationRendezVous;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +24,7 @@ class RendezVousService
     public function __construct(
         private readonly CreneauService $creneaux,
         private readonly OrientationService $orientation,
+        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -63,10 +67,11 @@ class RendezVousService
             return $rendezVous;
         });
 
-        // Module 8 : après validation de la transaction seulement, placer le courriel de
-        // confirmation dans la file d'attente.
+        // Après validation de la transaction seulement : courriel de confirmation (section 9).
+        $this->charger($rendezVous);
+        $this->notifications->envoyer($rendezVous, new ConfirmationRendezVous($rendezVous));
 
-        return $this->charger($rendezVous);
+        return $rendezVous;
     }
 
     /**
@@ -87,6 +92,9 @@ class RendezVousService
             throw ValidationException::withMessages(['date_heure' => 'Ce rendez-vous est déjà sur ce créneau.']);
         }
 
+        $ancienneDateHeure = CarbonImmutable::instance($rendezVous->date_heure);
+        $reprogrammation = $rendezVous->statut === StatutRdv::AReprogrammer;
+
         $this->dansUneTransaction(function () use ($rendezVous, $medecin, $dateHeure) {
             $this->creneaux->verifier($medecin, $dateHeure);
 
@@ -97,19 +105,26 @@ class RendezVousService
             ]);
         });
 
-        // Module 8 : après validation de la transaction seulement, courriel de modification.
+        // Après validation de la transaction seulement : courriel de modification ou de
+        // reprogrammation (section 9).
+        $this->charger($rendezVous);
+        $this->notifications->envoyer($rendezVous, new ModificationRendezVous($rendezVous, $ancienneDateHeure, $reprogrammation));
 
-        return $this->charger($rendezVous);
+        return $rendezVous;
     }
 
-    /** Annulation par le patient (dans le délai) ou par la secrétaire : le créneau est libéré. */
-    public function annuler(RendezVous $rendezVous): RendezVous
+    /**
+     * Annulation par le patient (dans le délai) ou par la secrétaire : le créneau est libéré et le
+     * patient en est informé dans les deux cas (section 9).
+     */
+    public function annuler(RendezVous $rendezVous, User $auteur): RendezVous
     {
         $rendezVous->update(['statut' => StatutRdv::Annule->value]);
 
-        // Module 8 : courriel d'annulation.
+        $this->charger($rendezVous);
+        $this->notifications->envoyer($rendezVous, new AnnulationRendezVous($rendezVous, parPatient: $auteur->id === (int) $rendezVous->patient_id));
 
-        return $this->charger($rendezVous);
+        return $rendezVous;
     }
 
     /**

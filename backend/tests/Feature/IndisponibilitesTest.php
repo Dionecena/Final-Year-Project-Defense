@@ -8,9 +8,13 @@ use App\Models\Indisponibilite;
 use App\Models\RendezVous;
 use App\Models\Specialite;
 use App\Models\User;
+use App\Notifications\RendezVousAReprogrammer;
 use Carbon\CarbonImmutable;
 use Database\Seeders\SpecialiteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -80,6 +84,7 @@ class IndisponibilitesTest extends TestCase
 
     public function test_t11_indisponibilite_couvrant_des_rendez_vous_puis_sans_rendez_vous(): void
     {
+        Notification::fake();
         $autrePatient = User::factory()->create();
         $dedans1 = $this->rdv('2026-11-02 09:00');
         $dedans2 = $this->rdv('2026-11-02 10:30', patient: $autrePatient);
@@ -108,10 +113,32 @@ class IndisponibilitesTest extends TestCase
             'motif' => 'Congrès',
         ]);
 
-        // Puis une indisponibilité sans rendez-vous : liste vide.
+        // Un courriel à chaque patient concerné, et à eux seuls.
+        Notification::assertSentTo($this->patient, RendezVousAReprogrammer::class, fn (RendezVousAReprogrammer $n) => $n->rendezVousId === $dedans1->id);
+        Notification::assertSentTo($autrePatient, RendezVousAReprogrammer::class, fn (RendezVousAReprogrammer $n) => $n->rendezVousId === $dedans2->id);
+        Notification::assertCount(2);
+        $this->assertDatabaseCount('notifications', 2);
+
+        // Puis une indisponibilité sans rendez-vous : liste vide et aucun courriel.
         $this->indisponibilite('2026-11-09 09:00', '2026-11-09 12:00')
             ->assertCreated()
             ->assertJsonCount(0, 'data.rendez_vous');
+
+        Notification::assertCount(2);
+        $this->assertDatabaseCount('notifications', 2);
+    }
+
+    public function test_t11_les_courriels_sont_places_dans_la_file_d_attente(): void
+    {
+        Queue::fake();
+        $this->rdv('2026-11-02 09:00');
+        $this->rdv('2026-11-02 10:30', patient: User::factory()->create());
+
+        $this->indisponibilite('2026-11-02 09:00', '2026-11-02 12:00')->assertJsonCount(2, 'data.rendez_vous');
+        Queue::assertPushed(SendQueuedNotifications::class, 2);
+
+        $this->indisponibilite('2026-11-09 09:00', '2026-11-09 12:00')->assertJsonCount(0, 'data.rendez_vous');
+        Queue::assertPushed(SendQueuedNotifications::class, 2);
     }
 
     public function test_les_bornes_de_la_periode_sont_comprises(): void

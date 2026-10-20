@@ -8,7 +8,7 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation) et 7 (indisponibilités) terminés. Ce README est complété à chaque module.
+> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités) et 8 (notifications) terminés. Ce README est complété à chaque module.
 
 ## Prérequis
 
@@ -91,6 +91,30 @@ cd frontend && npm run dev
 
 Ouvrir http://localhost:5173. Le serveur Vite relaie `/api`, `/sanctum`, `/login` et `/logout` vers
 Laravel : la SPA et l'API partagent la même origine, condition de Sanctum en mode SPA.
+
+### Courriels et file d'attente
+
+Les courriels au patient (confirmation, modification ou reprogrammation, annulation, rendez-vous à
+reprogrammer) sont placés dans la file d'attente `database` (`QUEUE_CONNECTION=database`) : **ils ne
+partent que si un travailleur tourne**.
+
+```bash
+cd backend && php artisan queue:work
+```
+
+Pour traiter une seule fois les courriels en attente puis s'arrêter : `php artisan queue:work --stop-when-empty`.
+Les envois en échec sont listés par `php artisan queue:failed` et relancés par `php artisan queue:retry all`.
+
+En développement, deux possibilités dans `backend/.env` :
+
+- **Mailpit** (fourni par Laragon : `C:\laragonin\mailpit\<version>\mailpit.exe`, ou menu Laragon) :
+  `MAIL_MAILER=smtp`, `MAIL_HOST=127.0.0.1`, `MAIL_PORT=1025`. Les courriels s'affichent sur
+  http://localhost:8025.
+- **Journal** : `MAIL_MAILER=log`, les courriels sont écrits dans `storage/logs/laravel.log`.
+
+Chaque courriel crée une ligne dans la table `notifications` (objet, contenu) ; la colonne `date_envoi`
+est renseignée quand l'envoi a réussi. Les coordonnées de la clinique reprises dans les courriels se
+renseignent dans `.env` (`CLINIQUE_NOM`, `CLINIQUE_ADRESSE`, `CLINIQUE_TELEPHONE`, `CLINIQUE_EMAIL`).
 
 ## Tests
 

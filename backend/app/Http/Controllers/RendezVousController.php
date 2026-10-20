@@ -43,10 +43,10 @@ class RendezVousController extends Controller
     }
 
     /** POST /api/rendez-vous/{rendezVous}/annulation (patient dans le délai, ou secrétaire) */
-    public function annuler(RendezVous $rendezVous): RendezVousResource
+    public function annuler(Request $request, RendezVous $rendezVous): RendezVousResource
     {
         Gate::authorize('annuler', $rendezVous);
 
-        return new RendezVousResource($this->service->annuler($rendezVous));
+        return new RendezVousResource($this->service->annuler($rendezVous, $request->user()));
     }
 }

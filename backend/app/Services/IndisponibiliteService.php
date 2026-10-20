@@ -7,6 +7,7 @@ use App\Models\Indisponibilite;
 use App\Models\Medecin;
 use App\Models\RendezVous;
 use App\Models\User;
+use App\Notifications\RendezVousAReprogrammer;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
  */
 class IndisponibiliteService
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Crée l'indisponibilité et passe à « à reprogrammer » les rendez-vous confirmés du médecin
      * dont l'heure tombe dans [date_debut, date_fin] (bornes comprises) et n'est pas encore passée.
@@ -64,8 +67,11 @@ class IndisponibiliteService
             ->orderBy('date_heure')
             ->get();
 
-        // Module 8 : après validation de la transaction, notifier chaque patient concerné
-        // (aucun courriel si la liste est vide).
+        // Après validation de la transaction : un courriel à chaque patient concerné (aucun si la
+        // liste est vide).
+        foreach ($rendezVous as $r) {
+            $this->notifications->envoyer($r, new RendezVousAReprogrammer($r));
+        }
 
         return ['indisponibilite' => $indisponibilite, 'rendez_vous' => $rendezVous];
     }

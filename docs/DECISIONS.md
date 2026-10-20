@@ -211,7 +211,43 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 - `DemoSeeder` : une indisponibilité fictive (matinée du médecin d'ORL) et un rendez-vous « à
   reprogrammer », créés directement (sans le service) pour n'envoyer aucun courriel au chargement.
 - Les courriels au patient (passage à « à reprogrammer », reprogrammation, annulation) sont réalisés
-  au module 8 ; point d'appel marqué `// Module 8` dans `IndisponibiliteService`.
+  au module 8.
 - Vérification dans le navigateur (SPA compilée sur le port 8001, ports 8000/5173 occupés par une
   autre session ; ajout temporaire dans `SANCTUM_STATEFUL_DOMAINS` et `.claude/launch.json`, retiré
   ensuite), avec un compte temporaire `verif.secretaire@exemple.test`.
+
+## Module 8 — notifications
+
+- Une classe par événement dans `app/Notifications`, toutes filles de `NotificationRendezVous`
+  (`ShouldQueue`, canal `mail` seul, `afterCommit()`) : `ConfirmationRendezVous`,
+  `ModificationRendezVous` (modification par le patient ou la secrétaire ; `reprogrammation` vrai si le
+  rendez-vous était « à reprogrammer », objet « Reprogrammation de votre rendez-vous »),
+  `AnnulationRendezVous` (`parPatient` : texte différent selon l'auteur), `RendezVousAReprogrammer`.
+- Points d'envoi, tous **après** la transaction : `RendezVousService::reserver`, `::modifier`,
+  `::annuler` (qui reçoit désormais l'auteur de l'annulation) et `IndisponibiliteService::enregistrer`
+  (un courriel par rendez-vous concerné, aucun si la liste est vide). Un 409 ou un 422 n'envoie rien.
+- **Journal** (`NotificationService`) : la ligne de `notifications` (objet, contenu en texte brut) est
+  créée au moment où le courriel est placé dans la file, avec `date_envoi` vide ; l'écouteur de
+  `NotificationSent` (enregistré dans `AppServiceProvider`) renseigne `date_envoi` quand le canal
+  `mail` a réussi. Un courriel en échec reste donc visible avec `date_envoi` vide. Le canal
+  `database` de Laravel n'est pas utilisé.
+- **Contenu figé à la création** : l'objet et les paragraphes sont calculés quand l'événement se
+  produit (et non au passage de la file), pour que le journal et le courriel soient identiques même si
+  le rendez-vous change entre-temps. La notification ne transporte que l'identifiant du rendez-vous
+  et ces textes, jamais le modèle ni la préconsultation.
+- Contenu : salutation au nom du patient, date en toutes lettres, heure, médecin, spécialité, rappel de
+  l'accueil direct (RG13), coordonnées de `config/clinique.php` (les valeurs vides sont omises). Le
+  courriel de modification rappelle l'ancien créneau ; celui de confirmation rappelle le délai de RG08.
+  **Aucune donnée de préconsultation** (vérifié par un test sur le courriel réellement envoyé et sur
+  le journal). Pas de bouton d'action (pas de lien vers l'application dans le corps).
+- `lang/fr.json` traduit les textes du gabarit de courriel de Laravel (« Tous droits réservés. »…).
+- Propriétés des notifications non `readonly` : la désérialisation de la file ne peut pas les initialiser.
+- Tests : T11 complété (courriel à chaque patient concerné, aucun pour une indisponibilité sans
+  rendez-vous, avec `Notification::fake()` puis `Queue::fake()`), un courriel par événement,
+  passage par la file avec `afterCommit`, contenu du courriel (transport `array`), `date_envoi`
+  renseignée après envoi et vide sans envoi effectif, aucun envoi si la transaction échoue (409, 422).
+- Vérification : Mailpit 1.22.3 de Laragon (SMTP 1025, interface 8025), `MAIL_MAILER=smtp` le temps de la
+  vérification puis retour à `log` ; indisponibilité, annulation et reprogrammation par la secrétaire
+  dans le navigateur, 3 tâches dans `jobs`, `queue:work --stop-when-empty`, 3 courriels reçus en
+  français et 3 lignes du journal avec `date_envoi`. La confirmation et la modification par le patient
+  sont couvertes par les tests. Données de vérification supprimées ensuite et `DemoSeeder` relancé.
