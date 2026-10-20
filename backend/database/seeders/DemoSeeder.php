@@ -89,6 +89,11 @@ class DemoSeeder extends Seeder
         $this->rendezVous($patients[0], $medecins['Médecine générale'], 1, 0);
         $this->rendezVous($patients[1], $medecins['Cardiologie'], 1, 1);
         $this->rendezVous($patients[2], $medecins['Ophtalmologie'], 2, 2);
+        $this->rendezVous($patients[0], $medecins['Pédiatrie'], 3, 1);
+
+        // Historique fictif : un rendez-vous annulé et un rendez-vous passé.
+        $this->rendezVous($patients[0], $medecins['Dermatologie'], 1, 3, StatutRdv::Annule);
+        $this->rendezVous($patients[0], $medecins['Médecine générale'], -2, 2, StatutRdv::Passe);
     }
 
     private function compte(string $email, string $nom, string $prenom, Role $role, string $password): User
@@ -110,27 +115,29 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param  int  $occurrence  n-ième prochain jour de présence du médecin (1 = le prochain)
+     * @param  int  $occurrence  n-ième prochain jour de présence du médecin (1 = le prochain ;
+     *                            -1 = le dernier jour de présence passé, avant aujourd'hui)
      * @param  int  $indexCreneau  rang du créneau dans la plage (0 = le premier)
      */
-    private function rendezVous(User $patient, Medecin $medecin, int $occurrence, int $indexCreneau): void
+    private function rendezVous(User $patient, Medecin $medecin, int $occurrence, int $indexCreneau, StatutRdv $statut = StatutRdv::Confirme): void
     {
         $jours = $medecin->disponibilites()->pluck('jour_semaine')->all();
-        $date = CarbonImmutable::tomorrow();
+        $pas = $occurrence > 0 ? 1 : -1;
+        $date = $occurrence > 0 ? CarbonImmutable::tomorrow() : CarbonImmutable::yesterday();
         $trouves = 0;
 
         while (true) {
-            if (in_array($date->dayOfWeekIso, $jours, true) && ++$trouves === $occurrence) {
+            if (in_array($date->dayOfWeekIso, $jours, true) && ++$trouves === abs($occurrence)) {
                 break;
             }
-            $date = $date->addDay();
+            $date = $date->addDays($pas);
         }
 
         [$h, $m] = explode(':', self::HEURE_DEBUT);
         $dateHeure = $date->setTime((int) $h, (int) $m)->addMinutes($indexCreneau * self::DUREE_CRENEAU);
 
         RendezVous::firstOrCreate(
-            ['medecin_id' => $medecin->user_id, 'date_heure' => $dateHeure, 'statut' => StatutRdv::Confirme->value],
+            ['medecin_id' => $medecin->user_id, 'date_heure' => $dateHeure, 'statut' => $statut->value],
             ['patient_id' => $patient->id],
         );
     }

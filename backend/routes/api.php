@@ -3,8 +3,11 @@
 use App\Http\Controllers\Admin\SpecialiteController as AdminSpecialiteController;
 use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CreneauController;
 use App\Http\Controllers\Medecin\PlanningController;
+use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\Secretariat\MedecinController;
+use App\Http\Controllers\Secretariat\RendezVousController as SecretariatRendezVousController;
 use App\Http\Controllers\SpecialiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,16 +21,32 @@ use Illuminate\Support\Facades\Route;
 // --- Routes publiques -------------------------------------------------------------
 Route::post('/inscription', [AuthController::class, 'inscription']);
 Route::get('/specialites', [SpecialiteController::class, 'index']);
+// Créneaux libres (section 14 : publics).
+Route::get('/specialites/{specialite}/creneaux', [CreneauController::class, 'parSpecialite']);
+Route::get('/medecins/{medecin}/creneaux', [CreneauController::class, 'parMedecin']);
 
 // --- Routes authentifiées ---------------------------------------------------------
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     Route::get('/moi', [AuthController::class, 'moi']);
 
+    // Patient : réservation et consultation de ses rendez-vous.
+    Route::middleware('role:patient')->group(function () {
+        Route::post('/rendez-vous', [RendezVousController::class, 'store']);
+        Route::get('/mes-rendez-vous', [RendezVousController::class, 'mesRendezVous']);
+    });
+
+    // Patient (le sien, avant le délai : RG08) ou secrétaire, contrôlé par RendezVousPolicy.
+    Route::middleware('role:patient,secretaire')->group(function () {
+        Route::patch('/rendez-vous/{rendezVous}', [RendezVousController::class, 'update']);
+        Route::post('/rendez-vous/{rendezVous}/annulation', [RendezVousController::class, 'annuler']);
+    });
+
     // Secrétaire : plannings des médecins. RG14 : aucune route PUT, PATCH ni DELETE
     // sur les disponibilités, tout changement passe par une indisponibilité (module 7).
     Route::middleware('role:secretaire')->group(function () {
         Route::get('/medecins', [MedecinController::class, 'index']);
+        Route::get('/secretariat/rendez-vous', [SecretariatRendezVousController::class, 'index']);
         Route::get('/medecins/{medecin}/planning', [MedecinController::class, 'planning']);
         Route::post('/medecins/{medecin}/disponibilites', [MedecinController::class, 'ajouterDisponibilite']);
     });

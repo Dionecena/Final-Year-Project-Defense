@@ -82,6 +82,7 @@ return [
         'date' => 'date',
         'du' => 'date de début',
         'au' => 'date de fin',
+        'statut' => 'statut',
     ],
 
 ];

@@ -42,6 +42,14 @@ export default function Specialites() {
               <li key={s.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <h2 className="font-semibold text-gray-900">{s.libelle}</h2>
                 <p className="mt-1 text-sm text-gray-700">{s.description ?? 'Jours de présence non communiqués.'}</p>
+                {utilisateur?.role === 'patient' && (
+                  <Link
+                    to={`/patient/prise-de-rendez-vous?specialite=${s.id}`}
+                    className="mt-2 inline-block text-sm font-semibold text-primaire-700 underline hover:text-primaire-800"
+                  >
+                    Prendre rendez-vous<span className="sr-only"> en {s.libelle}</span>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

@@ -88,3 +88,46 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   modules 5 et 7. Le médecin et la date choisis sont conservés dans l'URL.
 - Vérification dans le navigateur avec des comptes temporaires (secrétaire de vérification, mot
   de passe du médecin de démonstration de cardiologie changé), effacés par `migrate:fresh`.
+
+## Module 5 — créneaux et rendez-vous
+
+- **Décisions prises faute de réponse, à confirmer par l'auteur** :
+  - le patient (dans le délai) **et** la secrétaire (sans délai) peuvent déplacer un rendez-vous
+    vers un autre médecin **de la même spécialité** (section 8.2) ; jamais vers une autre spécialité ;
+  - le patient peut modifier ou annuler lui-même un rendez-vous « à reprogrammer », dans le délai ;
+    un changement de créneau le repasse à « confirmé ».
+- `CreneauService` (section 8.1) : plages `[heure_debut, heure_fin[`, dernier créneau incomplet
+  ignoré ; créneau retiré s'il a commencé (`debut <= maintenant`), s'il chevauche une indisponibilité
+  ou s'il porte un rendez-vous `confirme`/`a_reprogrammer`. Une indisponibilité couvre
+  `[date_debut, date_fin]` **bornes comprises** (cohérent avec la section 8.4 : un rendez-vous dont
+  l'heure tombe dans la période est concerné). Médecins désactivés : aucun créneau. Indisponibilités
+  et rendez-vous de la période chargés en une requête chacun. Tri par heure puis par nom de médecin.
+- Horizon : `horizon_jours` jours **aujourd'hui compris** (30 → d'aujourd'hui à J+29). Période par
+  défaut : tout l'horizon ; `au` au-delà de l'horizon ou avant `du` → 422 ; un `du` passé est ramené
+  à aujourd'hui. Une réservation au-delà de l'horizon est refusée (422).
+- Réservation : revérification dans la transaction ; créneau hors disponibilité, non aligné, passé,
+  sous indisponibilité ou médecin désactivé → **422** (champ `date_heure`/`medecin_id`) ; créneau déjà
+  pris (revérification ou violation de l'index unique) → **409** « Ce créneau vient d'être réservé
+  par quelqu'un d'autre. Veuillez choisir un autre créneau. » (`CreneauDejaReserveException`).
+  Le chemin de l'index unique est testé en neutralisant la revérification.
+- Paramètre `$preconsultation` de `RendezVousService::reserver` déjà prévu (insertion dans la
+  transaction) ; la `FormRequest` ne l'accepte pas encore (module 6). Points d'appel des courriels
+  marqués `// Module 8` après la transaction (réservation, modification, annulation).
+- RG08 (`RendezVousPolicy`) : patient autorisé tant que `maintenant < date_heure − délai` (la borne
+  exacte est refusée) ; message 403 invitant à contacter la clinique. La secrétaire n'a pas de délai.
+  Un rendez-vous `annule` ou `passe`, **ou dont l'heure est dépassée** (statut pas encore mis à jour
+  par la tâche planifiée), ne se modifie ni ne s'annule plus, même par la secrétaire.
+- Format des dates échangées : `AAAA-MM-JJ HH:MM`, heure de Dakar. La ressource indique `modifiable`,
+  `annulable` (calculés par la politique) et `limite_modification` pour l'affichage.
+- `GET /api/secretariat/rendez-vous` : paginé par 20, trié par date croissante ; la secrétaire voit
+  nom, prénom et téléphone du patient (pour le joindre). Le patient ne reçoit pas ce bloc.
+- Assistant de réservation : les étapes 2 (préconsultation) et 3 (orientation) sont des emplacements ;
+  « Passer cette étape » mène directement à l'étape 4 (RG02 ; RG04 : pas de suggestion sans
+  préconsultation). En cas de 409, retour à l'étape 4 avec le message et rechargement des créneaux.
+  La page « Spécialités » propose un lien de réservation avec la spécialité présélectionnée.
+- Le planning (module 4) affichait déjà les rendez-vous de la semaine ; vérifié après réservation.
+- `DemoSeeder` : ajout d'un rendez-vous de pédiatrie (modifiable), d'un rendez-vous annulé et d'un
+  rendez-vous passé pour le premier patient de démonstration.
+- Vérification dans le navigateur avec des comptes temporaires `verif.*@exemple.test`, effacés par
+  `migrate:fresh`. Les ports 8000/5173 étant occupés par une autre session, la SPA compilée a été
+  servie sur le port 8001 (ajout temporaire à `SANCTUM_STATEFUL_DOMAINS`, retiré ensuite).

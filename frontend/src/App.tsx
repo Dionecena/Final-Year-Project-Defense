@@ -9,7 +9,11 @@ import Inscription from './pages/Inscription'
 import GestionSpecialites from './pages/admin/GestionSpecialites'
 import Utilisateurs from './pages/admin/Utilisateurs'
 import MonPlanning from './pages/medecin/MonPlanning'
+import MesRendezVous from './pages/patient/MesRendezVous'
+import PriseRendezVous from './pages/patient/PriseRendezVous'
+import TableauDeBord from './pages/patient/TableauDeBord'
 import PlanningMedecins from './pages/secretariat/PlanningMedecins'
+import RendezVousSecretariat from './pages/secretariat/RendezVousSecretariat'
 import Specialites from './pages/Specialites'
 import PageIntrouvable from './pages/PageIntrouvable'
 
@@ -27,14 +31,14 @@ export default function App() {
 
             {/* Espace patient */}
             <Route path="patient" element={<RequireRole roles={['patient']} />}>
-              <Route index element={<PageEnConstruction titre="Tableau de bord" module={5} />} />
-              <Route path="prise-de-rendez-vous" element={<PageEnConstruction titre="Prise de rendez-vous" module={5} />} />
-              <Route path="mes-rendez-vous" element={<PageEnConstruction titre="Mes rendez-vous" module={5} />} />
+              <Route index element={<TableauDeBord />} />
+              <Route path="prise-de-rendez-vous" element={<PriseRendezVous />} />
+              <Route path="mes-rendez-vous" element={<MesRendezVous />} />
             </Route>
 
             {/* Espace secrétaire */}
             <Route path="secretariat" element={<RequireRole roles={['secretaire']} />}>
-              <Route index element={<PageEnConstruction titre="Rendez-vous" module={5} />} />
+              <Route index element={<RendezVousSecretariat />} />
               <Route path="planning" element={<PlanningMedecins />} />
               <Route path="indisponibilites" element={<PageEnConstruction titre="Indisponibilités" module={7} />} />
               <Route path="a-reprogrammer" element={<PageEnConstruction titre="Rendez-vous à reprogrammer" module={7} />} />

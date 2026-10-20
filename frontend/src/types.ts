@@ -57,6 +57,43 @@ export interface Planning {
   }[]
 }
 
+/** Créneau libre (heure de Dakar). `date_heure` est la valeur à envoyer pour réserver. */
+export interface Creneau {
+  date_heure: string
+  date: string
+  heure: string
+  fin: string
+  medecin: { id: number; nom: string; prenom: string }
+}
+
+/** Créneaux libres d'une période, regroupés par jour. */
+export interface Creneaux {
+  du: string
+  au: string
+  jours: { date: string; creneaux: Creneau[] }[]
+}
+
+export interface RendezVous {
+  id: number
+  date_heure: string
+  date: string
+  heure: string
+  statut: StatutRdv
+  statut_libelle: string
+  medecin: { id: number; nom: string; prenom: string }
+  specialite: { id: number; libelle: string }
+  /** Secrétariat uniquement. */
+  patient?: { id: number; nom: string; prenom: string; telephone: string | null }
+  /** Droits de l'utilisateur connecté (RG08), calculés par le serveur. */
+  modifiable: boolean
+  annulable: boolean
+  /** Heure limite de modification en ligne par le patient. */
+  limite_modification: string
+}
+
+/** Statuts qui occupent encore un créneau. */
+export const STATUTS_ACTIFS: StatutRdv[] = ['confirme', 'a_reprogrammer']
+
 export const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] as const
 
 export const LIBELLES_ROLE: Record<Role, string> = {
