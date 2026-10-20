@@ -8,6 +8,25 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
+## Aperçu
+
+Captures réalisées avec les données **fictives** de démonstration (`DemoSeeder`).
+
+<table>
+  <tr>
+    <td width="68%"><img src="apercu/accueil-bureau.png" alt="Page d'accueil sur ordinateur"><br><sub>Page d'accueil</sub></td>
+    <td width="32%" align="center"><img src="apercu/accueil-mobile.png" alt="Page d'accueil sur smartphone" width="240"><br><sub>Sur smartphone</sub></td>
+  </tr>
+</table>
+
+| Patient : suggestion d'orientation (indicative) | Secrétaire : planning des médecins |
+|---|---|
+| ![Suggestion d'orientation](apercu/reservation-3-suggestion.png) | ![Planning des médecins](apercu/secretariat-planning.png) |
+
+### Médecin : planning et préconsultation
+
+![Planning du médecin et préconsultation](apercu/medecin-preconsultation.png)
+
 ## Fonctionnalités
 
 | Rôle | Ce qu'il peut faire |
