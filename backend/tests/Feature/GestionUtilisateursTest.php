@@ -53,7 +53,7 @@ class GestionUtilisateursTest extends TestCase
 
     public function test_liste_filtrable_sans_mot_de_passe(): void
     {
-        User::factory()->create(['nom' => 'Alpha']);
+        User::factory()->create(['nom' => 'Alphazulu']);
         User::factory()->secretaire()->create(['nom' => 'Bravo']);
 
         $this->actingAs($this->admin)->getJson('/api/admin/utilisateurs?role=secretaire')
@@ -62,9 +62,9 @@ class GestionUtilisateursTest extends TestCase
             ->assertJsonPath('data.0.nom', 'Bravo')
             ->assertJsonMissingPath('data.0.password');
 
-        $this->actingAs($this->admin)->getJson('/api/admin/utilisateurs?recherche=alph')
+        $this->actingAs($this->admin)->getJson('/api/admin/utilisateurs?recherche=alphazul')
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.nom', 'Alpha');
+            ->assertJsonPath('data.0.nom', 'Alphazulu');
     }
 
     public function test_creation_d_une_secretaire(): void
