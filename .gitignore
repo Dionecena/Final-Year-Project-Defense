@@ -1,1 +1,6 @@
-.claude/settings.local.json
+.claude/
+
+# Documents de travail (non versionnés : seuls le README et le code sont dans le dépôt)
+CLAUDE.md
+RAPPORT.md
+docs/

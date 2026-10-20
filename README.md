@@ -8,8 +8,41 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : les dix modules du cahier des charges sont réalisés. Bilan, résultats des tests et écarts :
-> [`RAPPORT.md`](RAPPORT.md). Journal des décisions : [`docs/DECISIONS.md`](docs/DECISIONS.md).
+## Fonctionnalités
+
+| Rôle | Ce qu'il peut faire |
+|---|---|
+| Visiteur | Page d'accueil, liste des spécialités et de leurs jours de présence, inscription, connexion |
+| Patient | Prise de rendez-vous en 5 étapes (spécialité, préconsultation facultative, suggestion d'orientation éventuelle, médecin et créneau, confirmation), consultation de ses rendez-vous, changement de créneau ou annulation jusqu'à 24 h avant |
+| Secrétaire | Liste des rendez-vous filtrable, planning des médecins (vue semaine), ajout de disponibilités, enregistrement d'indisponibilités, reprogrammation ou annulation des rendez-vous « à reprogrammer » |
+| Médecin | Son planning du jour et de la semaine (lecture seule), détail d'un rendez-vous avec la préconsultation |
+| Administrateur | Comptes et rôles (création d'un médecin avec sa spécialité, désactivation), spécialités, statistiques |
+
+Les courriels au patient (confirmation, modification ou reprogrammation, annulation, rendez-vous à
+reprogrammer) passent par une file d'attente et sont journalisés dans la table `notifications`.
+Une tâche planifiée passe chaque heure les rendez-vous dépassés au statut « Passé ».
+La préconsultation et la suggestion d'orientation **ne constituent pas un diagnostic**, et la plateforme
+ne remplace pas l'accueil direct de la clinique.
+
+## Architecture
+
+```
+Navigateur (React SPA)  ──HTTPS / JSON──>  API Laravel  ──SQL──>  PostgreSQL (Supabase)
+                                              ├── File d'attente (database) → courriels
+                                              └── Planificateur → statut « Passé »
+```
+
+- `backend/app/Http` : routes (`routes/api.php`, `routes/web.php`), middlewares `role` et
+  `compte.actif`, contrôleurs, FormRequest, ressources JSON.
+- `backend/app/Services` : `CreneauService`, `RendezVousService`, `OrientationService`,
+  `IndisponibiliteService`, `StatistiqueService`, `PlanningService`, `NotificationService`,
+  `UtilisateurService`.
+- `backend/app/Policies` : `RendezVousPolicy`, `PreconsultationPolicy`, `UtilisateurPolicy`, `SpecialitePolicy`.
+- `backend/config` : règles métier réglables (`rendezvous.php` : délai de 24 h et horizon de 30 jours ;
+  `preconsultation.php` : saisie restreinte en psychiatrie ; `orientation.php` : termes d'orientation,
+  **exemples à faire valider par un médecin** ; `clinique.php` : coordonnées reprises dans les courriels).
+- `frontend/src` : pages par espace (`pages/patient`, `pages/secretariat`, `pages/medecin`, `pages/admin`),
+  composants partagés, client Axios Sanctum (`lib/api.ts`).
 
 ## Prérequis
 
