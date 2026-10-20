@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\Role;
 use App\Enums\StatutRdv;
 use App\Models\Disponibilite;
+use App\Models\Indisponibilite;
 use App\Models\Medecin;
 use App\Models\RendezVous;
 use App\Models\Specialite;
@@ -21,7 +22,8 @@ use RuntimeException;
  * Lancement : php artisan db:seed --class=DemoSeeder
  *
  * Crée une secrétaire, un médecin fictif par spécialité (disponibilités cohérentes avec
- * les jours de présence, plages horaires fictives), trois patients et quelques rendez-vous.
+ * les jours de présence, plages horaires fictives), trois patients, quelques rendez-vous et une
+ * indisponibilité avec un rendez-vous « à reprogrammer ».
  * Tous les comptes utilisent le mot de passe DEMO_PASSWORD défini dans .env.
  */
 class DemoSeeder extends Seeder
@@ -57,7 +59,7 @@ class DemoSeeder extends Seeder
 
         $this->call(SpecialiteSeeder::class);
 
-        $this->compte('secretaire.demo@exemple.test', 'Démo', 'Secrétaire', Role::Secretaire, $password);
+        $secretaire = $this->compte('secretaire.demo@exemple.test', 'Démo', 'Secrétaire', Role::Secretaire, $password);
 
         $medecins = [];
         foreach (self::JOURS as $libelle => $jours) {
@@ -95,6 +97,15 @@ class DemoSeeder extends Seeder
         // Historique fictif : un rendez-vous annulé et un rendez-vous passé.
         $this->rendezVous($patients[0], $medecins['Dermatologie'], 1, 3, StatutRdv::Annule);
         $this->rendezVous($patients[0], $medecins['Médecine générale'], -2, 2, StatutRdv::Passe);
+
+        // Indisponibilité fictive (module 7) : matinée du médecin d'ORL, dont le rendez-vous est
+        // « à reprogrammer ». Créés directement, sans passer par le service, pour n'envoyer aucun courriel.
+        $aReprogrammer = $this->rendezVous($patients[2], $medecins['ORL'], 2, 1, StatutRdv::AReprogrammer);
+        $jour = $aReprogrammer->date_heure->toImmutable()->startOfDay();
+        Indisponibilite::firstOrCreate(
+            ['medecin_id' => $medecins['ORL']->user_id, 'date_debut' => $jour->setTime(9, 0), 'date_fin' => $jour->setTime(12, 0)],
+            ['enregistree_par' => $secretaire->id, 'motif' => 'Formation (exemple fictif)'],
+        );
 
         // Préconsultations fictives (module 6) : l'une sans suggestion, l'autre où le patient a
         // conservé sa spécialité malgré la suggestion (specialite_suggeree_id renseignée).

@@ -13,6 +13,8 @@ import MesRendezVous from './pages/patient/MesRendezVous'
 import PriseRendezVous from './pages/patient/PriseRendezVous'
 import TableauDeBord from './pages/patient/TableauDeBord'
 import PlanningMedecins from './pages/secretariat/PlanningMedecins'
+import AReprogrammer from './pages/secretariat/AReprogrammer'
+import Indisponibilites from './pages/secretariat/Indisponibilites'
 import RendezVousSecretariat from './pages/secretariat/RendezVousSecretariat'
 import Specialites from './pages/Specialites'
 import PageIntrouvable from './pages/PageIntrouvable'
@@ -40,8 +42,8 @@ export default function App() {
             <Route path="secretariat" element={<RequireRole roles={['secretaire']} />}>
               <Route index element={<RendezVousSecretariat />} />
               <Route path="planning" element={<PlanningMedecins />} />
-              <Route path="indisponibilites" element={<PageEnConstruction titre="Indisponibilités" module={7} />} />
-              <Route path="a-reprogrammer" element={<PageEnConstruction titre="Rendez-vous à reprogrammer" module={7} />} />
+              <Route path="indisponibilites" element={<Indisponibilites />} />
+              <Route path="a-reprogrammer" element={<AReprogrammer />} />
             </Route>
 
             {/* Espace médecin */}

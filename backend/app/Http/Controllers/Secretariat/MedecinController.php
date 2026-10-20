@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Secretariat;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Secretariat\StoreDisponibiliteRequest;
+use App\Http\Requests\Secretariat\StoreIndisponibiliteRequest;
 use App\Http\Resources\DisponibiliteResource;
+use App\Http\Resources\IndisponibiliteResource;
 use App\Http\Resources\MedecinResource;
 use App\Http\Resources\PlanningResource;
+use App\Http\Resources\RendezVousResource;
 use App\Models\Medecin;
+use App\Services\IndisponibiliteService;
 use App\Services\PlanningService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +20,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 /**
  * Plannings des médecins côté secrétariat. RG14 : seul l'ajout d'une disponibilité existe,
- * aucune route de modification ni de suppression.
+ * aucune route de modification ni de suppression ; tout changement passe par une indisponibilité.
  */
 class MedecinController extends Controller
 {
@@ -49,6 +53,20 @@ class MedecinController extends Controller
         $disponibilite = $medecin->disponibilites()->create($request->validated());
 
         return (new DisponibiliteResource($disponibilite))->response()->setStatusCode(201);
+    }
+
+    /**
+     * POST /api/medecins/{medecin}/indisponibilites (RG09) : renvoie l'indisponibilité et la liste
+     * des rendez-vous passés à « à reprogrammer » (vide si aucun n'est concerné).
+     */
+    public function ajouterIndisponibilite(StoreIndisponibiliteRequest $request, Medecin $medecin, IndisponibiliteService $service): JsonResponse
+    {
+        $resultat = $service->enregistrer($request->user(), $medecin, $request->dateDebut(), $request->dateFin(), $request->motif());
+
+        return response()->json(['data' => [
+            'indisponibilite' => new IndisponibiliteResource($resultat['indisponibilite']),
+            'rendez_vous' => RendezVousResource::collection($resultat['rendez_vous']),
+        ]], 201);
     }
 
     /** Date de la semaine demandée (paramètre « date »), aujourd'hui par défaut. */

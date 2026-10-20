@@ -53,12 +53,15 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     });
 
     // Secrétaire : plannings des médecins. RG14 : aucune route PUT, PATCH ni DELETE
-    // sur les disponibilités, tout changement passe par une indisponibilité (module 7).
+    // sur les disponibilités, tout changement passe par une indisponibilité.
     Route::middleware('role:secretaire')->group(function () {
         Route::get('/medecins', [MedecinController::class, 'index']);
         Route::get('/secretariat/rendez-vous', [SecretariatRendezVousController::class, 'index']);
         Route::get('/medecins/{medecin}/planning', [MedecinController::class, 'planning']);
         Route::post('/medecins/{medecin}/disponibilites', [MedecinController::class, 'ajouterDisponibilite']);
+        // RG09 : les rendez-vous touchés passent à « à reprogrammer » ; la secrétaire les traite
+        // ensuite par PATCH /rendez-vous/{id} (reprogrammer) ou POST …/annulation (annuler).
+        Route::post('/medecins/{medecin}/indisponibilites', [MedecinController::class, 'ajouterIndisponibilite']);
     });
 
     // Médecin : son propre planning, en lecture seule (RG12).

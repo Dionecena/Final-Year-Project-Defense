@@ -176,3 +176,42 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   `verif.*@exemple.test`, supprimés après la vérification avec leurs rendez-vous.
 - Remarque hors module : les boutons radio des spécialités (étape 1, module 5) n'ont pas de nom
   accessible propre (« on » dans l'arbre d'accessibilité) ; à reprendre aux finitions.
+
+## Module 7 — indisponibilités
+
+- `POST /api/medecins/{id}/indisponibilites` (secrétaire) : `{ date_debut, date_fin, motif? }`, dates
+  `AAAA-MM-JJ HH:MM` (heure de Dakar), motif 255 caractères. Réponse 201
+  `{ data: { indisponibilite, rendez_vous } }` : `rendez_vous` est la liste des rendez-vous passés à
+  « à reprogrammer » (`RendezVousResource`, avec le téléphone du patient), vide si aucun.
+- `IndisponibiliteService::enregistrer` (section 8.4) : `date_fin >= date_debut` (validation 422, revérifiée
+  dans le service, et contrainte CHECK) ; transaction qui crée l'indisponibilité
+  (`enregistree_par` = secrétaire connectée) puis passe à `a_reprogrammer` les rendez-vous `confirme`
+  du médecin dont l'heure est dans `[date_debut, date_fin]`, **bornes comprises** (même convention
+  que `CreneauService`, module 5). Les lignes sont verrouillées (`lockForUpdate`).
+- **Décisions prises faute de précision, à confirmer par l'auteur** :
+  - une indisponibilité dont la fin est déjà passée est refusée (422 « Cette période est déjà passée. ») ;
+  - un rendez-vous dont l'heure est déjà passée n'est pas concerné (il passera à « passé » par la tâche
+    planifiée et ne pourrait de toute façon plus être reprogrammé) ;
+  - une indisponibilité peut chevaucher une autre, ou viser un médecin désactivé ;
+  - aucune route de modification ni de suppression d'une indisponibilité (non prévue section 14 ;
+    vérifié par un test, 404).
+- **Aucune route ajoutée pour le traitement** : « Reprogrammer » utilise `PATCH /api/rendez-vous/{id}`
+  (nouveau créneau libre, même médecin ou autre médecin de la même spécialité, retour à `confirme`) et
+  « Annuler » `POST /api/rendez-vous/{id}/annulation`. La liste « À reprogrammer » est
+  `GET /api/secretariat/rendez-vous?statut=a_reprogrammer`. Un créneau encore couvert par
+  l'indisponibilité est refusé (422) par la revérification du module 5.
+- Créneaux et planning : rien à modifier, `CreneauService` (module 5) retirait déjà les créneaux
+  couverts et le planning (module 4) affichait déjà les indisponibilités ; vérifié par des tests.
+- Écrans : « Enregistrement d'une indisponibilité » (`/secretariat/indisponibilites`, médecin
+  présélectionnable par `?medecin=id`) affiche aussitôt les rendez-vous concernés avec « Reprogrammer »
+  et « Annuler », puis le planning de la semaine du début ; « Rendez-vous à reprogrammer »
+  (`/secretariat/a-reprogrammer`). La ligne de rendez-vous de la secrétaire est extraite dans
+  `components/LigneRendezVous.tsx` (bouton « Reprogrammer » pour un rendez-vous à reprogrammer,
+  « Modifier » sinon) et partagée avec la liste des rendez-vous.
+- `DemoSeeder` : une indisponibilité fictive (matinée du médecin d'ORL) et un rendez-vous « à
+  reprogrammer », créés directement (sans le service) pour n'envoyer aucun courriel au chargement.
+- Les courriels au patient (passage à « à reprogrammer », reprogrammation, annulation) sont réalisés
+  au module 8 ; point d'appel marqué `// Module 8` dans `IndisponibiliteService`.
+- Vérification dans le navigateur (SPA compilée sur le port 8001, ports 8000/5173 occupés par une
+  autre session ; ajout temporaire dans `SANCTUM_STATEFUL_DOMAINS` et `.claude/launch.json`, retiré
+  ensuite), avec un compte temporaire `verif.secretaire@exemple.test`.

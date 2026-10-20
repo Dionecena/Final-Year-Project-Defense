@@ -8,7 +8,7 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous) et 6 (préconsultation et orientation) terminés. Ce README est complété à chaque module.
+> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation) et 7 (indisponibilités) terminés. Ce README est complété à chaque module.
 
 ## Prérequis
 
@@ -70,7 +70,8 @@ php artisan db:seed --class=DemoSeeder          # facultatif : données FICTIVES
 
 `DemoSeeder` crée une secrétaire (`secretaire.demo@exemple.test`), un médecin fictif par spécialité
 (`medecin.<specialite>@exemple.test`, par exemple `medecin.orl@exemple.test`), trois patients
-(`patient1.demo@exemple.test`…) et quelques rendez-vous. Mot de passe commun : `DEMO_PASSWORD`.
+(`patient1.demo@exemple.test`…), quelques rendez-vous et une indisponibilité du médecin d'ORL avec
+un rendez-vous « à reprogrammer ». Mot de passe commun : `DEMO_PASSWORD`.
 
 ## Lancement en développement
 
