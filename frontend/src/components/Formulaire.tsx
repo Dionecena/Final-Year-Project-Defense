@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
+import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 
 const classeChamp =
   'mt-1 block w-full rounded-lg border bg-white px-3 py-2.5 text-gray-900 shadow-sm focus:border-primaire-600 focus:outline-none focus:ring-2 focus:ring-primaire-600/30'
@@ -33,6 +33,46 @@ export function Champ({ label, erreur, aide, id, className, ...props }: Propriet
         <p id={idAide} className="mt-1 text-xs text-gray-600">
           {aide}
         </p>
+      )}
+      {erreur && (
+        <p id={idErreur} className="mt-1 text-sm text-red-700">
+          {erreur}
+        </p>
+      )}
+    </div>
+  )
+}
+
+interface ProprietesZoneTexte extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string
+  erreur?: string
+  aide?: ReactNode
+}
+
+/** Zone de texte sur plusieurs lignes, avec label, aide et message d'erreur accessibles. */
+export function ZoneTexte({ label, erreur, aide, id, className, ...props }: ProprietesZoneTexte) {
+  const idAuto = useId()
+  const idChamp = id ?? idAuto
+  const idAide = aide ? `${idChamp}-aide` : undefined
+  const idErreur = erreur ? `${idChamp}-erreur` : undefined
+
+  return (
+    <div className={className}>
+      <label htmlFor={idChamp} className="block text-sm font-medium text-gray-800">
+        {label}
+        {props.required && <span aria-hidden="true" className="text-red-700"> *</span>}
+      </label>
+      <textarea
+        id={idChamp}
+        aria-invalid={erreur ? true : undefined}
+        aria-describedby={[idAide, idErreur].filter(Boolean).join(' ') || undefined}
+        className={`${classeChamp} ${erreur ? 'border-red-600' : 'border-gray-300'}`}
+        {...props}
+      />
+      {aide && (
+        <div id={idAide} className="mt-1 text-xs text-gray-600">
+          {aide}
+        </div>
       )}
       {erreur && (
         <p id={idErreur} className="mt-1 text-sm text-red-700">

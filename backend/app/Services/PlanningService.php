@@ -34,6 +34,7 @@ class PlanningService
             // Tous les statuts, y compris « annulé » (décision de l'auteur), affichés avec leur libellé.
             'rendez_vous' => $medecin->rendezVous()
                 ->with('patient:id,nom,prenom')
+                ->withExists('preconsultation')
                 ->where('date_heure', '>=', $du)
                 ->where('date_heure', '<', $finExclue)
                 ->orderBy('date_heure')

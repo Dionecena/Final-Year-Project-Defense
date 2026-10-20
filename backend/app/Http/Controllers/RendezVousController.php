@@ -19,7 +19,7 @@ class RendezVousController extends Controller
     /** POST /api/rendez-vous (patient) */
     public function store(StoreRendezVousRequest $request): JsonResponse
     {
-        $rendezVous = $this->service->reserver($request->user(), $request->medecin(), $request->dateHeure());
+        $rendezVous = $this->service->reserver($request->user(), $request->medecin(), $request->dateHeure(), $request->preconsultation());
 
         return (new RendezVousResource($rendezVous))->response()->setStatusCode(201);
     }

@@ -131,3 +131,48 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 - Vérification dans le navigateur avec des comptes temporaires `verif.*@exemple.test`, effacés par
   `migrate:fresh`. Les ports 8000/5173 étant occupés par une autre session, la SPA compilée a été
   servie sur le port 8001 (ajout temporaire à `SANCTUM_STATEFUL_DOMAINS`, retiré ensuite).
+
+## Module 6 — préconsultation et orientation
+
+- **Égalité de correspondances** (validé par l'auteur) : la spécialité listée en premier dans
+  `config/orientation.php` l'emporte ; le médecin qui valide la liste en fixe donc aussi la priorité.
+- **`specialite_suggeree_id`** (validé par l'auteur) : renseignée seulement si le patient conserve sa
+  spécialité malgré la suggestion (section 8.3). S'il choisit la spécialité suggérée, elle reste
+  `null`, donc une suggestion suivie n'est pas tracée : la statistique « suggestions émises » du
+  module 9 ne comptera que les suggestions non suivies.
+- La spécialité suggérée n'est **jamais reçue du client** : `RendezVousService::reserver` la recalcule
+  avec `OrientationService` sur la spécialité du médecin réservé.
+- Réservation : `POST /api/rendez-vous` accepte `preconsultation: { motif, symptomes }` (facultative,
+  RG02). Toute autre clé est refusée (422, collecte minimale). Motif : 255 caractères (VARCHAR) ;
+  symptômes : `Specialite::maxSymptomes()`, soit 500 pour `saisie_restreinte` et 2 000 sinon (RG11).
+  La modification d'un rendez-vous (`PATCH`) ne touche pas à la préconsultation.
+- `POST /api/orientation/verification` (patient) : `{ specialite_id, motif, symptomes }`, mêmes règles ;
+  réponse `{ suggestion: null | { specialite, creneaux (3 au plus) } }`. Rien n'est enregistré.
+- Orientation : texte normalisé (minuscules, `Str::ascii`, tout ce qui n'est ni lettre ni chiffre
+  devient une espace). **Un terme correspond s'il commence un mot** : « oreille » trouve
+  « oreilles », mais « vue » ne trouve pas « prévue ». Le décompte porte sur les termes distincts
+  trouvés. Les libellés de la configuration absents de la base sont ignorés. Seuls les termes
+  d'exemple sont conservés, avec l'avertissement de validation par un médecin.
+- `GET /api/rendez-vous/{id}/preconsultation` : groupe `role:patient,medecin`, puis
+  `PreconsultationPolicy` (médecin du rendez-vous ou patient concerné). L'autorisation passe avant le
+  test d'existence : un tiers reçoit 403, jamais 404. Le médecin ou le patient concerné reçoit 404
+  s'il n'y a pas de préconsultation.
+- La secrétaire voit seulement le booléen `a_preconsultation` (sa liste et le planning) ; le planning
+  du médecin le contient aussi. `RendezVousResource` n'expose aucune donnée de préconsultation.
+- `GET /api/specialites` expose `saisie_restreinte` et `max_symptomes`, pour que la limite ne soit
+  définie qu'à un seul endroit (configuration).
+- Écrans : étape 2 (formulaire, compteur, champ plus court et consigne simple en psychiatrie, mention
+  RG03, « Passer cette étape ») ; étape 3 seulement s'il y a une suggestion (mention RG03, 3 créneaux
+  affichés à titre d'information, « Conserver ma spécialité » / « Choisir la spécialité suggérée »).
+  Si le patient suit la suggestion et que ses symptômes dépassent la limite de la nouvelle
+  spécialité, il revient à l'étape 2. Médecin : un clic sur un rendez-vous de son planning ouvre son
+  détail et la préconsultation (`?rdv=id` dans l'URL), sans nouvelle route API. Composant `ZoneTexte`
+  ajouté à `Formulaire.tsx`.
+- `DemoSeeder` : deux préconsultations fictives (une sans suggestion ; une en ophtalmologie où la
+  suggestion Dermatologie n'a pas été suivie).
+- Vérification dans le navigateur (SPA compilée sur le port 8001, ports 8000/5173 occupés par une
+  autre session ; ajout temporaire dans `SANCTUM_STATEFUL_DOMAINS`, retiré ensuite). La base de
+  développement n'a pas été réinitialisée (le `DemoSeeder` est idempotent). Comptes temporaires
+  `verif.*@exemple.test`, supprimés après la vérification avec leurs rendez-vous.
+- Remarque hors module : les boutons radio des spécialités (étape 1, module 5) n'ont pas de nom
+  accessible propre (« on » dans l'arbre d'accessibilité) ; à reprendre aux finitions.

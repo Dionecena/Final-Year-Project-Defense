@@ -18,4 +18,16 @@ class Specialite extends Model
     {
         return $this->hasMany(Medecin::class);
     }
+
+    /** RG11 : symptômes saisis dans un champ libre et court (config('preconsultation.saisie_restreinte')). */
+    public function aSaisieRestreinte(): bool
+    {
+        return in_array($this->libelle, config('preconsultation.saisie_restreinte', []), true);
+    }
+
+    /** RG11 : longueur maximale du champ « symptômes » pour cette spécialité. */
+    public function maxSymptomes(): int
+    {
+        return (int) config($this->aSaisieRestreinte() ? 'preconsultation.max_symptomes_restreinte' : 'preconsultation.max_symptomes');
+    }
 }

@@ -9,7 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Planning hebdomadaire d'un médecin : disponibilités, indisponibilités et rendez-vous de la
- * semaine. Aucune donnée de préconsultation (RG10, module 6). Dates et heures exprimées dans le
+ * semaine. De la préconsultation, seulement le fait qu'elle existe (RG10) ; son contenu se lit par
+ * GET /api/rendez-vous/{id}/preconsultation (médecin du rendez-vous). Dates et heures exprimées dans le
  * fuseau de l'application (Africa/Dakar).
  *
  * Ressource : tableau construit par PlanningService::semaine().
@@ -39,6 +40,7 @@ class PlanningResource extends JsonResource
                 'heure' => $r->date_heure->format('H:i'),
                 'statut' => $r->statut->value,
                 'statut_libelle' => $r->statut->libelle(),
+                'a_preconsultation' => (bool) $r->preconsultation_exists,
                 'patient' => [
                     'nom' => $r->patient->nom,
                     'prenom' => $r->patient->prenom,

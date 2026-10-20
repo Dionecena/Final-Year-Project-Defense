@@ -165,6 +165,8 @@ function LigneRendezVous({ rendezVous: r, onAction }: { rendezVous: RendezVous; 
               {r.patient.telephone && <> · {r.patient.telephone}</>}
             </p>
           )}
+          {/* RG10 : la secrétaire voit seulement si une préconsultation existe. */}
+          <p className="text-sm text-gray-700">Préconsultation : {r.a_preconsultation ? 'remplie' : 'non remplie'}</p>
         </div>
         <BadgeStatut statut={r.statut} libelle={r.statut_libelle} />
       </div>

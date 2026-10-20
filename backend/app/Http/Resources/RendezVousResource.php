@@ -9,7 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Rendez-vous vu par le patient ou la secrétaire. Dates dans le fuseau Africa/Dakar.
- * Aucune donnée de préconsultation (RG10).
+ * Aucune donnée de préconsultation (RG10) : seulement, si la requête l'a chargé avec
+ * withExists('preconsultation'), le fait qu'elle existe (liste de la secrétaire).
  *
  * @mixin \App\Models\RendezVous
  */
@@ -42,6 +43,7 @@ class RendezVousResource extends JsonResource
                 'prenom' => $this->patient->prenom,
                 'telephone' => $this->patient->telephone,
             ]),
+            'a_preconsultation' => $this->when(isset($this->preconsultation_exists), fn () => (bool) $this->preconsultation_exists),
             // Droits de l'utilisateur connecté (RG08), pour l'affichage des boutons.
             'modifiable' => (bool) $acteur?->can('modifier', $this->resource),
             'annulable' => (bool) $acteur?->can('annuler', $this->resource),

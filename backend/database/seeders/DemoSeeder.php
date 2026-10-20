@@ -9,6 +9,7 @@ use App\Models\Medecin;
 use App\Models\RendezVous;
 use App\Models\Specialite;
 use App\Models\User;
+use App\Services\OrientationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -86,14 +87,31 @@ class DemoSeeder extends Seeder
         ];
 
         // Quelques rendez-vous futurs, placés sur le premier créneau des prochains jours de présence.
-        $this->rendezVous($patients[0], $medecins['Médecine générale'], 1, 0);
+        $generale = $this->rendezVous($patients[0], $medecins['Médecine générale'], 1, 0);
         $this->rendezVous($patients[1], $medecins['Cardiologie'], 1, 1);
-        $this->rendezVous($patients[2], $medecins['Ophtalmologie'], 2, 2);
+        $ophtalmologie = $this->rendezVous($patients[2], $medecins['Ophtalmologie'], 2, 2);
         $this->rendezVous($patients[0], $medecins['Pédiatrie'], 3, 1);
 
         // Historique fictif : un rendez-vous annulé et un rendez-vous passé.
         $this->rendezVous($patients[0], $medecins['Dermatologie'], 1, 3, StatutRdv::Annule);
         $this->rendezVous($patients[0], $medecins['Médecine générale'], -2, 2, StatutRdv::Passe);
+
+        // Préconsultations fictives (module 6) : l'une sans suggestion, l'autre où le patient a
+        // conservé sa spécialité malgré la suggestion (specialite_suggeree_id renseignée).
+        $this->preconsultation($generale, 'Fatigue depuis une semaine', 'Fatigue persistante et légère fièvre le soir (texte fictif).');
+        $this->preconsultation($ophtalmologie, 'Contrôle annuel', 'Plaques rouges sur la peau du visage depuis quelques jours (texte fictif).');
+    }
+
+    private function preconsultation(RendezVous $rendezVous, string $motif, string $symptomes): void
+    {
+        $specialite = $rendezVous->medecin->specialite;
+
+        $rendezVous->preconsultation()->firstOrCreate([], [
+            'motif' => $motif,
+            'symptomes' => $symptomes,
+            'specialite_suggeree_id' => app(OrientationService::class)->specialiteSuggeree($specialite, $motif, $symptomes)?->id,
+            'date_saisie' => CarbonImmutable::now(),
+        ]);
     }
 
     private function compte(string $email, string $nom, string $prenom, Role $role, string $password): User
@@ -119,7 +137,7 @@ class DemoSeeder extends Seeder
      *                            -1 = le dernier jour de présence passé, avant aujourd'hui)
      * @param  int  $indexCreneau  rang du créneau dans la plage (0 = le premier)
      */
-    private function rendezVous(User $patient, Medecin $medecin, int $occurrence, int $indexCreneau, StatutRdv $statut = StatutRdv::Confirme): void
+    private function rendezVous(User $patient, Medecin $medecin, int $occurrence, int $indexCreneau, StatutRdv $statut = StatutRdv::Confirme): RendezVous
     {
         $jours = $medecin->disponibilites()->pluck('jour_semaine')->all();
         $pas = $occurrence > 0 ? 1 : -1;
@@ -136,7 +154,7 @@ class DemoSeeder extends Seeder
         [$h, $m] = explode(':', self::HEURE_DEBUT);
         $dateHeure = $date->setTime((int) $h, (int) $m)->addMinutes($indexCreneau * self::DUREE_CRENEAU);
 
-        RendezVous::firstOrCreate(
+        return RendezVous::firstOrCreate(
             ['medecin_id' => $medecin->user_id, 'date_heure' => $dateHeure, 'statut' => $statut->value],
             ['patient_id' => $patient->id],
         );

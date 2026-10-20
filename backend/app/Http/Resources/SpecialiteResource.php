@@ -17,6 +17,9 @@ class SpecialiteResource extends JsonResource
             'libelle' => $this->libelle,
             // Jours de présence communiqués par la clinique.
             'description' => $this->description,
+            // RG11 : saisie libre et courte des symptômes, et leur longueur maximale.
+            'saisie_restreinte' => $this->aSaisieRestreinte(),
+            'max_symptomes' => $this->maxSymptomes(),
             // Uniquement dans la liste de l'administrateur.
             'nombre_medecins' => $this->whenCounted('medecins'),
         ];

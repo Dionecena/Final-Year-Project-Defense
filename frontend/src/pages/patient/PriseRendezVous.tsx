@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BadgeStatut, estConflit, libelleRendezVous, nomMedecin, SelecteurCreneau, useCreneauxSpecialite } from '../../components/Creneaux'
-import { Alerte, Bouton } from '../../components/Formulaire'
-import { api, messageErreur } from '../../lib/api'
-import type { Creneau, RendezVous, Specialite } from '../../types'
+import { Alerte, Bouton, Champ, ZoneTexte } from '../../components/Formulaire'
+import { api, erreursChamps, messageErreur } from '../../lib/api'
+import { MENTION_NON_DIAGNOSTIC, type Creneau, type RendezVous, type SaisiePreconsultation, type Specialite, type SuggestionOrientation } from '../../types'
 
 type Etape = 1 | 2 | 3 | 4 | 5
 
@@ -27,6 +27,11 @@ export default function PriseRendezVous() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
   const [reserve, setReserve] = useState<RendezVous | null>(null)
+  // Préconsultation facultative (RG02) : saisie en cours, puis valeur retenue (null : étape passée).
+  const [saisie, setSaisie] = useState<SaisiePreconsultation>({ motif: '', symptomes: '' })
+  const [preconsultation, setPreconsultation] = useState<SaisiePreconsultation | null>(null)
+  const [erreursPreconsultation, setErreursPreconsultation] = useState<Record<string, string>>({})
+  const [suggestion, setSuggestion] = useState<SuggestionOrientation | null>(null)
 
   const { creneaux, erreur: erreurCreneaux, chargement, recharger } = useCreneauxSpecialite(etape >= 4 ? (specialite?.id ?? null) : null)
 
@@ -52,8 +57,64 @@ export default function PriseRendezVous() {
     if (s.id !== specialite?.id) {
       setMedecinId('')
       setCreneau(null)
+      // La préconsultation sera revérifiée pour la nouvelle spécialité.
+      setPreconsultation(null)
+      setSuggestion(null)
     }
     setSpecialite(s)
+  }
+
+  /** RG02 : la préconsultation ne bloque jamais la réservation. */
+  function passerPreconsultation() {
+    setPreconsultation(null)
+    setSuggestion(null)
+    setErreursPreconsultation({})
+    aller(4)
+  }
+
+  /** Vérification d'orientation (section 8.3) : l'étape 3 n'apparaît qu'en cas de suggestion (RG04). */
+  async function validerPreconsultation(e: FormEvent) {
+    e.preventDefault()
+    if (!specialite) return
+    const valeur = { motif: saisie.motif.trim(), symptomes: saisie.symptomes.trim() }
+    setEnvoi(true)
+    setErreur(null)
+    setErreursPreconsultation({})
+    try {
+      const { data } = await api.post<{ data: { suggestion: SuggestionOrientation | null } }>('/api/orientation/verification', {
+        specialite_id: specialite.id,
+        ...valeur,
+      })
+      setPreconsultation(valeur)
+      setSuggestion(data.data.suggestion)
+      aller(data.data.suggestion ? 3 : 4)
+    } catch (err) {
+      const champs = erreursChamps(err)
+      setErreursPreconsultation(champs)
+      if (Object.keys(champs).length === 0) setErreur(messageErreur(err))
+    } finally {
+      setEnvoi(false)
+    }
+  }
+
+  /** « Choisir la spécialité suggérée » : la préconsultation saisie est conservée. */
+  function suivreSuggestion() {
+    if (!suggestion) return
+    const suggeree = specialites?.find((s) => s.id === suggestion.specialite.id) ?? suggestion.specialite
+    setSpecialite(suggeree)
+    setMedecinId('')
+    setCreneau(null)
+    setSuggestion(null)
+    // RG11 : la limite de la nouvelle spécialité peut être plus courte.
+    if (preconsultation && preconsultation.symptomes.length > suggeree.max_symptomes) {
+      setPreconsultation(null)
+      setErreursPreconsultation({
+        symptomes: `Pour la spécialité ${suggeree.libelle}, les symptômes ne doivent pas dépasser ${suggeree.max_symptomes} caractères.`,
+      })
+      aller(2)
+      return
+    }
+    aller(4)
   }
 
   async function confirmer() {
@@ -61,10 +122,10 @@ export default function PriseRendezVous() {
     setEnvoi(true)
     setErreur(null)
     try {
-      // Module 6 : la préconsultation éventuelle sera jointe ici.
       const { data } = await api.post<{ data: RendezVous }>('/api/rendez-vous', {
         medecin_id: creneau.medecin.id,
         date_heure: creneau.date_heure,
+        ...(preconsultation ? { preconsultation } : {}),
       })
       setReserve(data.data)
     } catch (err) {
@@ -170,22 +231,97 @@ export default function PriseRendezVous() {
         </div>
       )}
 
-      {etape === 2 && (
-        <div className="space-y-4">
+      {etape === 2 && specialite && (
+        <form onSubmit={validerPreconsultation} noValidate className="space-y-4">
           <h2 className="text-lg font-bold text-gray-900">2. Préconsultation (facultative)</h2>
           <p className="text-gray-700">
             La préconsultation permet d'indiquer au médecin le motif de votre visite avant le rendez-vous. Elle est facultative : vous
             pouvez réserver sans la remplir.
           </p>
-          {/* Module 6 : formulaire de préconsultation (motif, symptômes) et vérification d'orientation. */}
-          <Alerte type="info">Le formulaire de préconsultation n'est pas encore disponible en ligne.</Alerte>
+          {/* RG03 */}
+          <Alerte type="info">{MENTION_NON_DIAGNOSTIC}</Alerte>
+          <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <Champ
+              label="Motif de la consultation"
+              required
+              maxLength={255}
+              autoComplete="off"
+              value={saisie.motif}
+              onChange={(e) => setSaisie({ ...saisie, motif: e.target.value })}
+              erreur={erreursPreconsultation.motif}
+            />
+            <ZoneTexte
+              label="Symptômes"
+              required
+              // RG11 : champ libre et court en psychiatrie, sans questionnaire.
+              rows={specialite.saisie_restreinte ? 4 : 6}
+              maxLength={specialite.max_symptomes}
+              value={saisie.symptomes}
+              onChange={(e) => setSaisie({ ...saisie, symptomes: e.target.value })}
+              erreur={erreursPreconsultation.symptomes}
+              aide={
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span>
+                    {specialite.saisie_restreinte
+                      ? 'Décrivez brièvement, avec vos mots, ce qui vous amène.'
+                      : 'Décrivez ce que vous ressentez et depuis quand.'}
+                  </span>
+                  <span aria-live="polite" className={saisie.symptomes.length >= specialite.max_symptomes ? 'font-semibold text-red-700' : ''}>
+                    {saisie.symptomes.length} / {specialite.max_symptomes} caractères
+                  </span>
+                </div>
+              }
+            />
+          </div>
           <div className="flex flex-wrap gap-2">
-            <Bouton variante="secondaire" onClick={() => aller(1)}>
+            <Bouton type="button" variante="secondaire" onClick={() => aller(1)} disabled={envoi}>
               Retour
             </Bouton>
-            {/* RG02 : la préconsultation ne bloque jamais la réservation. L'étape 3 (suggestion) n'apparaît
-                qu'en cas d'incompatibilité entre motif et spécialité (RG04) : sans préconsultation, elle est sautée. */}
-            <Bouton onClick={() => aller(4)}>Passer cette étape</Bouton>
+            {/* RG02 : sans préconsultation, l'étape 3 est sautée (RG04 : pas de suggestion). */}
+            <Bouton type="button" variante="secondaire" onClick={passerPreconsultation} disabled={envoi}>
+              Passer cette étape
+            </Bouton>
+            <Bouton type="submit" disabled={envoi}>
+              {envoi ? 'Vérification…' : 'Continuer'}
+            </Bouton>
+          </div>
+        </form>
+      )}
+
+      {etape === 3 && specialite && suggestion && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900">3. Suggestion d'orientation</h2>
+          <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <p className="text-gray-900">
+              D'après le motif et les symptômes indiqués, la spécialité <strong>{suggestion.specialite.libelle}</strong> pourrait mieux
+              correspondre à votre demande que <strong>{specialite.libelle}</strong>. Cette suggestion est indicative : vous pouvez
+              conserver votre choix.
+            </p>
+            {/* RG03 */}
+            <p className="text-sm font-medium text-amber-900">{MENTION_NON_DIAGNOSTIC}</p>
+          </div>
+          <div>
+            <h3 className="mb-2 font-semibold text-gray-900">Prochains créneaux en {suggestion.specialite.libelle}</h3>
+            {suggestion.creneaux.length === 0 ? (
+              <p className="text-sm text-gray-700">Aucun créneau libre n'est proposé en ligne pour le moment dans cette spécialité.</p>
+            ) : (
+              <ul className="space-y-1">
+                {suggestion.creneaux.map((c) => (
+                  <li key={`${c.medecin.id}-${c.date_heure}`} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900">
+                    <span className="font-medium first-letter:uppercase">{libelleRendezVous(c)}</span> – {nomMedecin(c.medecin)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Bouton variante="secondaire" onClick={() => aller(2)}>
+              Retour
+            </Bouton>
+            <Bouton variante="secondaire" onClick={() => aller(4)}>
+              Conserver ma spécialité
+            </Bouton>
+            <Bouton onClick={suivreSuggestion}>Choisir la spécialité suggérée</Bouton>
           </div>
         </div>
       )}
@@ -217,7 +353,7 @@ export default function PriseRendezVous() {
             )
           )}
           <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-gray-200 bg-gray-50/95 py-3">
-            <Bouton variante="secondaire" onClick={() => aller(2)}>
+            <Bouton variante="secondaire" onClick={() => aller(suggestion ? 3 : 2)}>
               Retour
             </Bouton>
             <Bouton onClick={() => aller(5)} disabled={!creneau}>
@@ -234,7 +370,7 @@ export default function PriseRendezVous() {
             <Ligne terme="Spécialité" valeur={specialite.libelle} />
             <Ligne terme="Médecin" valeur={nomMedecin(creneau.medecin)} />
             <Ligne terme="Date et heure" valeur={libelleRendezVous(creneau)} />
-            <Ligne terme="Préconsultation" valeur="Non remplie" />
+            <Ligne terme="Préconsultation" valeur={preconsultation ? `Remplie (motif : ${preconsultation.motif})` : 'Non remplie'} />
           </dl>
           <p className="text-sm text-gray-700">
             Le rendez-vous est confirmé immédiatement. Vous pourrez le modifier ou l'annuler en ligne jusqu'au délai fixé par la clinique avant son heure ; au-delà, contactez la

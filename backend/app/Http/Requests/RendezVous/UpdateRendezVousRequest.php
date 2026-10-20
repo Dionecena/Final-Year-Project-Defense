@@ -6,12 +6,18 @@ use Illuminate\Support\Facades\Gate;
 
 /**
  * Changement de créneau (même médecin ou autre médecin de la même spécialité), par le patient
- * dans le délai de RG08 ou par la secrétaire (RendezVousPolicy::modifier).
+ * dans le délai de RG08 ou par la secrétaire (RendezVousPolicy::modifier). La préconsultation
+ * n'est pas modifiée.
  */
 class UpdateRendezVousRequest extends StoreRendezVousRequest
 {
     public function authorize(): mixed
     {
         return Gate::inspect('modifier', $this->route('rendezVous'));
+    }
+
+    public function rules(): array
+    {
+        return $this->reglesCreneau();
     }
 }

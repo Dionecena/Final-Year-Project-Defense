@@ -12,7 +12,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
 
 /**
- * Liste des rendez-vous du secrétariat, filtrable par médecin, date et statut.
+ * Liste des rendez-vous du secrétariat, filtrable par médecin, date et statut, avec l'indication
+ * de l'existence d'une préconsultation (jamais son contenu, RG10).
  */
 class RendezVousController extends Controller
 {
@@ -27,6 +28,8 @@ class RendezVousController extends Controller
 
         $rendezVous = RendezVous::query()
             ->with(['medecin.user', 'medecin.specialite', 'patient'])
+            // RG10 : la secrétaire voit seulement si une préconsultation existe.
+            ->withExists('preconsultation')
             ->when($filtres['medecin_id'] ?? null, fn ($q, $id) => $q->where('medecin_id', $id))
             ->when($filtres['date'] ?? null, function ($q, $date) {
                 $jour = CarbonImmutable::createFromFormat('!Y-m-d', $date);

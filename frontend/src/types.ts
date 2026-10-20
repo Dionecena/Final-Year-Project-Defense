@@ -18,6 +18,10 @@ export interface Specialite {
   libelle: string
   /** Jours de présence communiqués par la clinique. */
   description: string | null
+  /** RG11 : symptômes saisis dans un champ libre et court (psychiatrie). */
+  saisie_restreinte: boolean
+  /** RG11 : longueur maximale du champ « symptômes ». */
+  max_symptomes: number
   /** Liste de l'administrateur uniquement. */
   nombre_medecins?: number
 }
@@ -53,6 +57,8 @@ export interface Planning {
     heure: string
     statut: StatutRdv
     statut_libelle: string
+    /** Existence d'une préconsultation (RG10 : jamais son contenu). */
+    a_preconsultation: boolean
     patient: { nom: string; prenom: string }
   }[]
 }
@@ -84,11 +90,32 @@ export interface RendezVous {
   specialite: { id: number; libelle: string }
   /** Secrétariat uniquement. */
   patient?: { id: number; nom: string; prenom: string; telephone: string | null }
+  /** Secrétariat uniquement : existence d'une préconsultation (RG10 : jamais son contenu). */
+  a_preconsultation?: boolean
   /** Droits de l'utilisateur connecté (RG08), calculés par le serveur. */
   modifiable: boolean
   annulable: boolean
   /** Heure limite de modification en ligne par le patient. */
   limite_modification: string
+}
+
+/** Préconsultation facultative (RG02) : motif et symptômes seulement (collecte minimale). */
+export interface SaisiePreconsultation {
+  motif: string
+  symptomes: string
+}
+
+/** Contenu d'une préconsultation, lisible par le médecin du rendez-vous et le patient (RG10). */
+export interface Preconsultation extends SaisiePreconsultation {
+  date_saisie: string | null
+  /** Suggestion d'orientation que le patient n'a pas suivie. */
+  specialite_suggeree: { id: number; libelle: string } | null
+}
+
+/** Suggestion d'orientation indicative (RG03, RG04) et prochains créneaux de la spécialité. */
+export interface SuggestionOrientation {
+  specialite: Specialite
+  creneaux: Creneau[]
 }
 
 /** Statuts qui occupent encore un créneau. */

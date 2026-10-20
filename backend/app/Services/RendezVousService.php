@@ -18,12 +18,19 @@ use Illuminate\Validation\ValidationException;
  */
 class RendezVousService
 {
-    public function __construct(private readonly CreneauService $creneaux) {}
+    public function __construct(
+        private readonly CreneauService $creneaux,
+        private readonly OrientationService $orientation,
+    ) {}
 
     /**
      * Réserve un créneau pour le patient ; le rendez-vous est directement confirmé (RG06).
      *
-     * @param  array{motif: string, symptomes: string, specialite_suggeree_id?: int|null}|null  $preconsultation  facultative (RG02), validée au module 6
+     * La spécialité suggérée n'est pas reçue du client : elle est recalculée sur la spécialité du
+     * médecin. Si le patient a conservé sa spécialité malgré une suggestion, specialite_suggeree_id
+     * est renseignée ; s'il a suivi la suggestion, il n'y a plus d'incompatibilité (section 8.3).
+     *
+     * @param  array{motif: string, symptomes: string}|null  $preconsultation  facultative (RG02)
      *
      * @throws CreneauDejaReserveException créneau pris entre-temps (409, RG07)
      */
@@ -46,7 +53,9 @@ class RendezVousService
                 $rendezVous->preconsultation()->create([
                     'motif' => $preconsultation['motif'],
                     'symptomes' => $preconsultation['symptomes'],
-                    'specialite_suggeree_id' => $preconsultation['specialite_suggeree_id'] ?? null,
+                    'specialite_suggeree_id' => $this->orientation->specialiteSuggeree(
+                        $medecin->specialite, $preconsultation['motif'], $preconsultation['symptomes'],
+                    )?->id,
                     'date_saisie' => CarbonImmutable::now(),
                 ]);
             }

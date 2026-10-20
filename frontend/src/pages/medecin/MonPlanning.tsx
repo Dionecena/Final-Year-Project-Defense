@@ -3,23 +3,30 @@ import { useSearchParams } from 'react-router-dom'
 import { Alerte } from '../../components/Formulaire'
 import { LegendePlanning, NavigationPeriode, usePlanning, VueJour, VueSemaine } from '../../components/Planning'
 import { aujourdhui, dateCourte } from '../../lib/dates'
+import DetailRendezVous from './DetailRendezVous'
 
 type Vue = 'jour' | 'semaine'
 
-/** Médecin : planning du jour et de la semaine, en lecture seule (RG12). */
+/** Médecin : planning du jour et de la semaine, en lecture seule (RG12), et détail d'un rendez-vous. */
 export default function MonPlanning() {
   const [params, setParams] = useSearchParams()
   const [vue, setVue] = useState<Vue>(params.get('vue') === 'semaine' ? 'semaine' : 'jour')
   const date = params.get('date') ?? aujourdhui()
   const { planning, erreur, chargement } = usePlanning('/api/medecin/planning', date)
+  // Rendez-vous dont le détail est ouvert (?rdv=id), parmi ceux de la semaine affichée.
+  const detail = planning?.rendez_vous.find((r) => String(r.id) === params.get('rdv')) ?? null
 
-  function changer(suivants: { vue?: Vue; date?: string }) {
+  function changer(suivants: { vue?: Vue; date?: string; rdv?: number | null }) {
     const p = new URLSearchParams(params)
     if (suivants.vue) {
       setVue(suivants.vue)
       p.set('vue', suivants.vue)
     }
     if (suivants.date) p.set('date', suivants.date)
+    if (suivants.rdv !== undefined) {
+      if (suivants.rdv === null) p.delete('rdv')
+      else p.set('rdv', String(suivants.rdv))
+    }
     setParams(p, { replace: true })
   }
 
@@ -71,8 +78,14 @@ export default function MonPlanning() {
               Semaine du {dateCourte(planning.semaine.du)} au {dateCourte(planning.semaine.au)}
             </h2>
           )}
+          {detail && <DetailRendezVous rendezVous={detail} onFermer={() => changer({ rdv: null })} />}
           <LegendePlanning />
-          {vue === 'jour' ? <VueJour planning={planning} date={date} /> : <VueSemaine planning={planning} />}
+          <p className="text-sm text-gray-600">Sélectionnez un rendez-vous pour afficher son détail et la préconsultation éventuelle.</p>
+          {vue === 'jour' ? (
+            <VueJour planning={planning} date={date} onRendezVous={(r) => changer({ rdv: r.id })} />
+          ) : (
+            <VueSemaine planning={planning} onRendezVous={(r) => changer({ rdv: r.id })} />
+          )}
         </div>
       )}
     </section>

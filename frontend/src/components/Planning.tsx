@@ -71,8 +71,13 @@ const STYLES_STATUT: Record<StatutRdv, string> = {
   passe: 'border-gray-300 bg-gray-100 text-gray-700',
 }
 
+type RendezVousPlanning = Planning['rendez_vous'][number]
+
+/** Ouverture du détail d'un rendez-vous (planning du médecin) ; absent : rendez-vous non cliquables. */
+type OuvrirRendezVous = ((rendezVous: RendezVousPlanning) => void) | undefined
+
 /** Contenu d'une journée : plages de disponibilité, indisponibilités et rendez-vous. */
-function Journee({ planning, date }: { planning: Planning; date: string }) {
+function Journee({ planning, date, onRendezVous }: { planning: Planning; date: string; onRendezVous: OuvrirRendezVous }) {
   const plages = planning.disponibilites.filter((d) => d.jour_semaine === jourSemaine(date))
   const debutJour = `${date} 00:00`
   const finJour = `${ajouterJours(date, 1)} 00:00`
@@ -108,12 +113,32 @@ function Journee({ planning, date }: { planning: Planning; date: string }) {
 
       {rendezVous.length > 0 && (
         <ul aria-label="Rendez-vous" className="space-y-1">
-          {rendezVous.map((r) => (
-            <li key={r.id} className={`rounded-md border px-2 py-1 text-sm ${STYLES_STATUT[r.statut]}`}>
-              <span className="font-semibold">{r.heure}</span> {r.patient.prenom} {r.patient.nom}
-              <span className="ml-1 text-xs no-underline">({r.statut_libelle})</span>
-            </li>
-          ))}
+          {rendezVous.map((r) => {
+            const contenu = (
+              <>
+                <span className="font-semibold">{r.heure}</span> {r.patient.prenom} {r.patient.nom}
+                <span className="ml-1 text-xs no-underline">({r.statut_libelle})</span>
+                {/* RG10 : seulement l'existence d'une préconsultation, jamais son contenu. */}
+                {r.a_preconsultation && <span className="ml-1 rounded bg-white/70 px-1 text-xs font-medium no-underline">· Préconsultation</span>}
+              </>
+            )
+            return (
+              <li key={r.id} className={`rounded-md border text-sm ${STYLES_STATUT[r.statut]}`}>
+                {onRendezVous ? (
+                  <button
+                    type="button"
+                    onClick={() => onRendezVous(r)}
+                    className="block w-full rounded-md px-2 py-1 text-left hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-primaire-600"
+                  >
+                    {contenu}
+                    <span className="sr-only"> – voir le détail</span>
+                  </button>
+                ) : (
+                  <div className="px-2 py-1">{contenu}</div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
@@ -121,7 +146,7 @@ function Journee({ planning, date }: { planning: Planning; date: string }) {
 }
 
 /** Vue semaine : une colonne par jour sur grand écran, une liste de jours sur smartphone. */
-export function VueSemaine({ planning }: { planning: Planning }) {
+export function VueSemaine({ planning, onRendezVous }: { planning: Planning; onRendezVous?: OuvrirRendezVous }) {
   const jours = Array.from({ length: 7 }, (_, i) => ajouterJours(planning.semaine.du, i))
   const aujourd = aujourdhui()
 
@@ -134,7 +159,7 @@ export function VueSemaine({ planning }: { planning: Planning }) {
           className={`rounded-xl border bg-white p-3 shadow-sm ${jour === aujourd ? 'border-primaire-600' : 'border-gray-200'}`}
         >
           <h3 className="mb-2 text-sm font-bold text-gray-900 first-letter:uppercase">{libelleDate(jour)}</h3>
-          <Journee planning={planning} date={jour} />
+          <Journee planning={planning} date={jour} onRendezVous={onRendezVous} />
         </li>
       ))}
     </ol>
@@ -142,11 +167,11 @@ export function VueSemaine({ planning }: { planning: Planning }) {
 }
 
 /** Vue d'un seul jour (planning du jour du médecin). */
-export function VueJour({ planning, date }: { planning: Planning; date: string }) {
+export function VueJour({ planning, date, onRendezVous }: { planning: Planning; date: string; onRendezVous?: OuvrirRendezVous }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <h3 className="mb-3 font-bold text-gray-900 first-letter:uppercase">{libelleDate(date, true)}</h3>
-      <Journee planning={planning} date={date} />
+      <Journee planning={planning} date={date} onRendezVous={onRendezVous} />
     </div>
   )
 }

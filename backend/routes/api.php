@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CreneauController;
 use App\Http\Controllers\Medecin\PlanningController;
+use App\Http\Controllers\OrientationController;
+use App\Http\Controllers\PreconsultationController;
 use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\Secretariat\MedecinController;
 use App\Http\Controllers\Secretariat\RendezVousController as SecretariatRendezVousController;
@@ -30,8 +32,10 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     Route::get('/moi', [AuthController::class, 'moi']);
 
-    // Patient : réservation et consultation de ses rendez-vous.
+    // Patient : vérification d'orientation (section 8.3), réservation avec la préconsultation
+    // facultative (RG02) et consultation de ses rendez-vous.
     Route::middleware('role:patient')->group(function () {
+        Route::post('/orientation/verification', [OrientationController::class, 'verifier']);
         Route::post('/rendez-vous', [RendezVousController::class, 'store']);
         Route::get('/mes-rendez-vous', [RendezVousController::class, 'mesRendezVous']);
     });
@@ -40,6 +44,12 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::middleware('role:patient,secretaire')->group(function () {
         Route::patch('/rendez-vous/{rendezVous}', [RendezVousController::class, 'update']);
         Route::post('/rendez-vous/{rendezVous}/annulation', [RendezVousController::class, 'annuler']);
+    });
+
+    // RG10 : contenu de la préconsultation, pour le médecin du rendez-vous ou le patient concerné
+    // (PreconsultationPolicy). Ni la secrétaire ni l'administrateur n'y ont accès.
+    Route::middleware('role:patient,medecin')->group(function () {
+        Route::get('/rendez-vous/{rendezVous}/preconsultation', [PreconsultationController::class, 'show']);
     });
 
     // Secrétaire : plannings des médecins. RG14 : aucune route PUT, PATCH ni DELETE
