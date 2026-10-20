@@ -251,3 +251,36 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   dans le navigateur, 3 tâches dans `jobs`, `queue:work --stop-when-empty`, 3 courriels reçus en
   français et 3 lignes du journal avec `date_envoi`. La confirmation et la modification par le patient
   sont couvertes par les tests. Données de vérification supprimées ensuite et `DemoSeeder` relancé.
+
+## Module 9 — statistiques
+
+- `GET /api/admin/statistiques?du=AAAA-MM-JJ&au=AAAA-MM-JJ` (administrateur ; middleware `role` et
+  `authorize()` de `PeriodeStatistiquesRequest`). Contrôleur `Admin\StatistiqueController`, service
+  `StatistiqueService`, ressource `StatistiquesResource`.
+- **Regroupement par mois** (et non par semaine) : sur la période par défaut, 7 barres au lieu d'une
+  trentaine, lisibles sur smartphone. Les mois sans rendez-vous apparaissent à zéro.
+- **Période** (décisions prises faute de précision, à confirmer par l'auteur) : bornes comprises, heure
+  de Dakar. Par défaut, du 1er jour du mois cinq mois en arrière au dernier jour du mois suivant (six
+  mois écoulés et les rendez-vous déjà pris pour le mois à venir). `au` avant `du` → 422 ; période de
+  24 mois ou plus → 422 (lisibilité).
+- **Rattachement à la période** : rendez-vous à leur `date_heure`, tous statuts confondus ;
+  préconsultations à la date **de leur rendez-vous** (et non `date_saisie`), pour rester comparables au
+  nombre de rendez-vous ; indisponibilités comptées si elles **touchent** la période.
+- Réponse : `rendez_vous` (`total`, `par_statut` avec les quatre statuts et leur libellé français,
+  `par_specialite` avec les dix spécialités triées par nombre décroissant, `par_mois`),
+  `preconsultations` (`total`, `suggestions`), `indisponibilites` (`total`). Aucune donnée nominative,
+  aucun contenu de préconsultation (vérifié par un test).
+- `suggestions` = préconsultations dont `specialite_suggeree_id` est renseignée, c'est-à-dire les
+  suggestions **non suivies** (décision du module 6) ; l'écran le précise sous les chiffres clés.
+- Six requêtes agrégées (`GROUP BY` du query builder, `to_char(date_heure, 'YYYY-MM')` propre à
+  PostgreSQL), quel que soit le volume : vérifié par un test sur le journal des requêtes.
+- Écran « Statistiques » (`/admin`) : période dans l'URL, quatre chiffres clés, barres horizontales en
+  CSS (aucune bibliothèque de graphiques), nombre écrit en clair à côté de chaque barre. Le composant
+  `PageEnConstruction`, devenu inutile, est supprimé.
+- `DemoSeeder` inchangé : ses rendez-vous, préconsultations et indisponibilité suffisent à alimenter
+  l'écran.
+- Vérification dans le navigateur (SPA compilée sur le port 8001, ports 8000/5173 occupés par une
+  autre session ; ajouts temporaires dans `SANCTUM_STATEFUL_DOMAINS` et `.claude/launch.json`, retirés
+  ensuite) avec un compte temporaire `verif.admin@exemple.test`, supprimé après : période par défaut,
+  filtrage par mois, erreur de période, affichage à 375 px sans défilement horizontal.
+- Correction hors module : caractère de contrôle dans le chemin de Mailpit du README.

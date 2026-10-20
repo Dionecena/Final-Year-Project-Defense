@@ -2,11 +2,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import RequireRole from './auth/RequireRole'
 import Layout from './components/Layout'
-import PageEnConstruction from './components/PageEnConstruction'
 import Accueil from './pages/Accueil'
 import Connexion from './pages/Connexion'
 import Inscription from './pages/Inscription'
 import GestionSpecialites from './pages/admin/GestionSpecialites'
+import Statistiques from './pages/admin/Statistiques'
 import Utilisateurs from './pages/admin/Utilisateurs'
 import MonPlanning from './pages/medecin/MonPlanning'
 import MesRendezVous from './pages/patient/MesRendezVous'
@@ -53,7 +53,7 @@ export default function App() {
 
             {/* Espace administrateur */}
             <Route path="admin" element={<RequireRole roles={['administrateur']} />}>
-              <Route index element={<PageEnConstruction titre="Statistiques" module={9} />} />
+              <Route index element={<Statistiques />} />
               <Route path="utilisateurs" element={<Utilisateurs />} />
               <Route path="specialites" element={<GestionSpecialites />} />
             </Route>

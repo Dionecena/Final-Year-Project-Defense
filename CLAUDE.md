@@ -53,5 +53,5 @@ Frontend (`frontend/src/`) :
 - `auth/AuthContext.tsx` (`useAuth`), `auth/RequireRole.tsx`, `components/Layout.tsx`
   (liens par rôle), `components/Formulaire.tsx` (`Champ`, `Liste`, `Alerte`, `Bouton`).
 - `types.ts` : `LIBELLES_STATUT`, `LIBELLES_ROLE`, `MENTION_NON_DIAGNOSTIC`.
-- Routes dans `App.tsx` ; remplacer les `PageEnConstruction` au fil des modules.
+- Routes dans `App.tsx` (toutes les pages sont réalisées depuis le module 9).
 - Mobile d'abord, labels sur tous les champs, pas de `dangerouslySetInnerHTML`.

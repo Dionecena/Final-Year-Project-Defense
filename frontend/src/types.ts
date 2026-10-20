@@ -145,5 +145,21 @@ export const ACCUEIL_ROLE: Record<Role, string> = {
   administrateur: '/admin',
 }
 
+/** Statistiques de l'administrateur : comptes agrégés seulement (aucune donnée nominative). */
+export interface Statistiques {
+  /** Bornes comprises (AAAA-MM-JJ) ; regroupement par mois. */
+  periode: { du: string; au: string; regroupement: 'mois' }
+  rendez_vous: {
+    total: number
+    par_statut: { statut: StatutRdv; libelle: string; nombre: number }[]
+    par_specialite: { specialite_id: number; libelle: string; nombre: number }[]
+    /** Mois de la période au format AAAA-MM, y compris ceux sans rendez-vous. */
+    par_mois: { mois: string; nombre: number }[]
+  }
+  /** `suggestions` : suggestions d'orientation que le patient n'a pas suivies (les seules enregistrées). */
+  preconsultations: { total: number; suggestions: number }
+  indisponibilites: { total: number }
+}
+
 export const MENTION_NON_DIAGNOSTIC =
   'Ces informations ne constituent pas un diagnostic et ne remplacent pas une consultation médicale.'

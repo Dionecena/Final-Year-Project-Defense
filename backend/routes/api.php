@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\SpecialiteController as AdminSpecialiteController;
+use App\Http\Controllers\Admin\StatistiqueController;
 use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CreneauController;
@@ -81,6 +82,9 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/specialites', [AdminSpecialiteController::class, 'index']);
         Route::post('/specialites', [AdminSpecialiteController::class, 'store']);
         Route::patch('/specialites/{specialite}', [AdminSpecialiteController::class, 'update']);
+
+        // Statistiques : comptes agrégés, sans donnée nominative ni contenu de préconsultation.
+        Route::get('/statistiques', [StatistiqueController::class, 'index']);
     });
 
 });

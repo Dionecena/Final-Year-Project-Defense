@@ -8,7 +8,7 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités) et 8 (notifications) terminés. Ce README est complété à chaque module.
+> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités), 8 (notifications) et 9 (statistiques) terminés. Ce README est complété à chaque module.
 
 ## Prérequis
 
@@ -107,7 +107,7 @@ Les envois en échec sont listés par `php artisan queue:failed` et relancés pa
 
 En développement, deux possibilités dans `backend/.env` :
 
-- **Mailpit** (fourni par Laragon : `C:\laragonin\mailpit\<version>\mailpit.exe`, ou menu Laragon) :
+- **Mailpit** (fourni par Laragon : `C:\laragon\bin\mailpit\<version>\mailpit.exe`, ou menu Laragon) :
   `MAIL_MAILER=smtp`, `MAIL_HOST=127.0.0.1`, `MAIL_PORT=1025`. Les courriels s'affichent sur
   http://localhost:8025.
 - **Journal** : `MAIL_MAILER=log`, les courriels sont écrits dans `storage/logs/laravel.log`.
