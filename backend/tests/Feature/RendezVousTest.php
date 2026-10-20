@@ -317,7 +317,7 @@ class RendezVousTest extends TestCase
             ->assertJsonPath('message', 'Ce rendez-vous est « Annulé » : il ne peut plus être annulé.');
     }
 
-    public function test_modification_par_le_patient_meme_medecin_ou_autre_medecin_de_la_specialite(): void
+    public function test_le_patient_change_de_creneau_avec_le_meme_medecin_seule_la_secretaire_change_de_medecin(): void
     {
         $rdv = $this->rdv('2026-11-04 10:00');
         $confrere = $this->medecinDisponible();
@@ -327,7 +327,13 @@ class RendezVousTest extends TestCase
             ->assertJsonPath('data.date_heure', '2026-11-04 11:00')
             ->assertJsonPath('data.statut', 'confirme');
 
+        // Décision de l'auteur : le patient ne déplace pas son rendez-vous vers un autre médecin.
         $this->actingAs($this->patient)->patchJson("/api/rendez-vous/{$rdv->id}", ['medecin_id' => $confrere->id, 'date_heure' => '2026-11-04 11:00'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('medecin_id');
+        $this->assertSame($this->medecin->id, $rdv->fresh()->medecin_id);
+
+        $this->actingAs($this->secretaire)->patchJson("/api/rendez-vous/{$rdv->id}", ['medecin_id' => $confrere->id, 'date_heure' => '2026-11-04 11:00'])
             ->assertOk()
             ->assertJsonPath('data.medecin.id', $confrere->id);
 
@@ -343,7 +349,7 @@ class RendezVousTest extends TestCase
         $orl = $this->medecinDisponible(Specialite::where('libelle', 'ORL')->first());
         $url = "/api/rendez-vous/{$rdv->id}";
 
-        $this->actingAs($this->patient)->patchJson($url, ['medecin_id' => $orl->id, 'date_heure' => '2026-11-04 09:00'])
+        $this->actingAs($this->secretaire)->patchJson($url, ['medecin_id' => $orl->id, 'date_heure' => '2026-11-04 09:00'])
             ->assertJsonValidationErrors(['medecin_id' => 'Le rendez-vous ne peut être déplacé que vers un médecin de la même spécialité.']);
         $this->actingAs($this->patient)->patchJson($url, ['medecin_id' => $this->medecin->id, 'date_heure' => '2026-11-04 10:00'])
             ->assertJsonValidationErrors(['date_heure' => 'Ce rendez-vous est déjà sur ce créneau.']);

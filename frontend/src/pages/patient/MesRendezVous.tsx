@@ -129,7 +129,7 @@ function CarteRendezVous({ rendezVous: r, onAction }: { rendezVous: RendezVous; 
 
       {r.statut === 'a_reprogrammer' && (
         <p className="mt-2 text-sm text-amber-900">
-          Le médecin est indisponible à cette date : la clinique va vous proposer un autre créneau. Vous pouvez aussi en choisir un vous-même.
+          Le médecin est indisponible à cette date : la clinique va vous proposer un autre créneau. Vous pouvez aussi choisir vous-même un autre créneau avec le même médecin.
         </p>
       )}
 
@@ -175,10 +175,11 @@ function CarteRendezVous({ rendezVous: r, onAction }: { rendezVous: RendezVous; 
             {mode === 'modification' && (
               <ModificationRendezVous
                 rendezVous={r}
+                memeMedecin
                 onFermer={() => setMode('aucun')}
                 onModifie={(nouveau) => {
                   setMode('aucun')
-                  onAction(`Votre rendez-vous est déplacé au ${libelleRendezVous(nouveau)} avec ${nomMedecin(nouveau.medecin)}.`)
+                  onAction(`Votre rendez-vous est déplacé au ${libelleRendezVous(nouveau)}.`)
                 }}
               />
             )}

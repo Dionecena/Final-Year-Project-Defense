@@ -91,9 +91,11 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 
 ## Module 5 — créneaux et rendez-vous
 
-- **Décisions prises faute de réponse, à confirmer par l'auteur** :
-  - le patient (dans le délai) **et** la secrétaire (sans délai) peuvent déplacer un rendez-vous
-    vers un autre médecin **de la même spécialité** (section 8.2) ; jamais vers une autre spécialité ;
+- **Changement de médecin** (tranché par l'auteur, **écart** par rapport à la section 8.2) : **seule la
+  secrétaire** peut déplacer un rendez-vous vers un autre médecin de la même spécialité. Le patient ne
+  change que le créneau, avec le même médecin (422 sur `medecin_id` sinon, l'écran ne lui propose que
+  les créneaux de son médecin). Jamais vers une autre spécialité.
+- Décision prise faute de réponse :
   - le patient peut modifier ou annuler lui-même un rendez-vous « à reprogrammer », dans le délai ;
     un changement de créneau le repasse à « confirmé ».
 - `CreneauService` (section 8.1) : plages `[heure_debut, heure_fin[`, dernier créneau incomplet
@@ -188,7 +190,7 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   (`enregistree_par` = secrétaire connectée) puis passe à `a_reprogrammer` les rendez-vous `confirme`
   du médecin dont l'heure est dans `[date_debut, date_fin]`, **bornes comprises** (même convention
   que `CreneauService`, module 5). Les lignes sont verrouillées (`lockForUpdate`).
-- **Décisions prises faute de précision, à confirmer par l'auteur** :
+- **Décisions prises faute de précision, validées par l'auteur** :
   - une indisponibilité dont la fin est déjà passée est refusée (422 « Cette période est déjà passée. ») ;
   - un rendez-vous dont l'heure est déjà passée n'est pas concerné (il passera à « passé » par la tâche
     planifiée et ne pourrait de toute façon plus être reprogrammé) ;
@@ -259,7 +261,7 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   `StatistiqueService`, ressource `StatistiquesResource`.
 - **Regroupement par mois** (et non par semaine) : sur la période par défaut, 7 barres au lieu d'une
   trentaine, lisibles sur smartphone. Les mois sans rendez-vous apparaissent à zéro.
-- **Période** (décisions prises faute de précision, à confirmer par l'auteur) : bornes comprises, heure
+- **Période** (décisions prises faute de précision, validées par l'auteur) : bornes comprises, heure
   de Dakar. Par défaut, du 1er jour du mois cinq mois en arrière au dernier jour du mois suivant (six
   mois écoulés et les rendez-vous déjà pris pour le mois à venir). `au` avant `du` → 422 ; période de
   24 mois ou plus → 422 (lisibilité).

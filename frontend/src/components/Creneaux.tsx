@@ -188,12 +188,27 @@ export function ModificationRendezVous({
   rendezVous,
   onModifie,
   onFermer,
+  memeMedecin = false,
 }: {
   rendezVous: RendezVous
   onModifie: (r: RendezVous) => void
   onFermer: () => void
+  /** Patient : seul le créneau change, avec le même médecin (seule la secrétaire change de médecin). */
+  memeMedecin?: boolean
 }) {
-  const { creneaux, erreur: erreurChargement, recharger } = useCreneauxSpecialite(rendezVous.specialite.id)
+  const { creneaux: tousCreneaux, erreur: erreurChargement, recharger } = useCreneauxSpecialite(rendezVous.specialite.id)
+  const creneaux = useMemo(
+    () =>
+      tousCreneaux && memeMedecin
+        ? {
+            ...tousCreneaux,
+            jours: tousCreneaux.jours
+              .map((j) => ({ ...j, creneaux: j.creneaux.filter((c) => c.medecin.id === rendezVous.medecin.id) }))
+              .filter((j) => j.creneaux.length > 0),
+          }
+        : tousCreneaux,
+    [tousCreneaux, memeMedecin, rendezVous.medecin.id],
+  )
   const [medecinId, setMedecinId] = useState(String(rendezVous.medecin.id))
   const [selection, setSelection] = useState<Creneau | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
@@ -223,7 +238,9 @@ export function ModificationRendezVous({
   return (
     <div className="mt-3 space-y-4 rounded-xl border border-primaire-100 bg-primaire-50/40 p-4">
       <p className="text-sm text-gray-700">
-        Choisissez un nouveau créneau en {rendezVous.specialite.libelle}, avec le même médecin ou un autre médecin de la spécialité.
+        {memeMedecin
+          ? `Choisissez un nouveau créneau avec ${nomMedecin(rendezVous.medecin)}. Pour changer de médecin, contactez la clinique.`
+          : `Choisissez un nouveau créneau en ${rendezVous.specialite.libelle}, avec le même médecin ou un autre médecin de la spécialité.`}
       </p>
       {erreurChargement && <Alerte>{erreurChargement}</Alerte>}
       {erreur && <Alerte>{erreur}</Alerte>}
