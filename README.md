@@ -8,67 +8,6 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-## Aperçu
-
-Captures réalisées avec les données **fictives** de démonstration (`DemoSeeder`).
-
-### Page d'accueil
-
-![Page d'accueil sur ordinateur](captures/accueil-bureau.png)
-
-<table>
-  <tr>
-    <td align="center" width="50%"><img src="captures/accueil-mobile.png" alt="Accueil sur smartphone" width="300"><br><sub>Accueil sur smartphone</sub></td>
-    <td align="center" width="50%"><img src="captures/accueil-mobile-etapes.png" alt="Étapes de la prise de rendez-vous sur smartphone" width="300"><br><sub>Les trois étapes, sur smartphone</sub></td>
-  </tr>
-</table>
-
-<details>
-<summary>Page d'accueil complète (ordinateur)</summary>
-
-![Page d'accueil complète](captures/accueil-bureau-complet.png)
-
-</details>
-
-### Connexion
-
-![Connexion](captures/connexion.png)
-
-### Patient : prise de rendez-vous en 5 étapes
-
-| 1. Spécialité | 2. Préconsultation facultative |
-|---|---|
-| ![Choix de la spécialité](captures/reservation-1-specialite.png) | ![Préconsultation](captures/reservation-2-preconsultation.png) |
-| **3. Suggestion d'orientation (indicative)** | **4. Médecin et créneau** |
-| ![Suggestion d'orientation](captures/reservation-3-suggestion.png) | ![Choix du créneau](captures/reservation-4-creneau.png) |
-
-### Patient : mes rendez-vous
-
-<table>
-  <tr>
-    <td width="68%"><img src="captures/mes-rendez-vous.png" alt="Mes rendez-vous sur ordinateur"></td>
-    <td width="32%" align="center"><img src="captures/mes-rendez-vous-mobile.png" alt="Mes rendez-vous sur smartphone" width="240"></td>
-  </tr>
-</table>
-
-### Secrétaire
-
-| Liste des rendez-vous | Planning des médecins (vue semaine) |
-|---|---|
-| ![Rendez-vous du secrétariat](captures/secretariat-rendez-vous.png) | ![Planning des médecins](captures/secretariat-planning.png) |
-| **Enregistrement d'une indisponibilité** | **Rendez-vous à reprogrammer** |
-| ![Indisponibilité](captures/secretariat-indisponibilite.png) | ![À reprogrammer](captures/secretariat-a-reprogrammer.png) |
-
-### Médecin : planning et préconsultation
-
-![Planning du médecin et préconsultation](captures/medecin-preconsultation.png)
-
-### Administrateur
-
-| Statistiques | Gestion des utilisateurs |
-|---|---|
-| ![Statistiques](captures/admin-statistiques.png) | ![Gestion des utilisateurs](captures/admin-utilisateurs.png) |
-
 ## Fonctionnalités
 
 | Rôle | Ce qu'il peut faire |
