@@ -8,7 +8,7 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités), 8 (notifications) et 9 (statistiques) terminés. Ce README est complété à chaque module.
+> État : modules 1 (socle), 2 (gestion des utilisateurs), 3 (spécialités), 4 (plannings), 5 (créneaux et rendez-vous), 6 (préconsultation et orientation), 7 (indisponibilités), 8 (notifications) et 9 (statistiques) terminés ; module 10 en cours (tâche planifiée faite ; finitions responsives, ngrok et rapport à venir). Ce README est complété à chaque module.
 
 ## Prérequis
 
@@ -75,7 +75,7 @@ un rendez-vous « à reprogrammer ». Mot de passe commun : `DEMO_PASSWORD`.
 
 ## Lancement en développement
 
-Trois terminaux :
+Trois terminaux (un quatrième pour le planificateur, voir « Tâche planifiée ») :
 
 ```bash
 cd backend && php artisan serve --host=127.0.0.1 --port=8000
@@ -115,6 +115,42 @@ En développement, deux possibilités dans `backend/.env` :
 Chaque courriel crée une ligne dans la table `notifications` (objet, contenu) ; la colonne `date_envoi`
 est renseignée quand l'envoi a réussi. Les coordonnées de la clinique reprises dans les courriels se
 renseignent dans `.env` (`CLINIQUE_NOM`, `CLINIQUE_ADRESSE`, `CLINIQUE_TELEPHONE`, `CLINIQUE_EMAIL`).
+
+### Tâche planifiée (planificateur)
+
+La commande `rendezvous:marquer-passes` passe à « Passé » les rendez-vous **confirmés** dont l'heure
+est dépassée (les rendez-vous « à reprogrammer » restent à traiter par la secrétaire). Elle est
+planifiée **toutes les heures** dans `backend/routes/console.php` ; **elle ne s'exécute que si le
+planificateur de Laravel tourne**.
+
+```bash
+cd backend && php artisan schedule:list                 # vérifier la planification
+cd backend && php artisan rendezvous:marquer-passes     # exécution manuelle immédiate
+```
+
+**En développement**, un quatrième terminal laissé ouvert :
+
+```bash
+cd backend && php artisan schedule:work
+```
+
+**En démonstration sous Windows**, le planificateur de tâches appelle `schedule:run` chaque minute
+(Laravel décide lui-même d'exécuter la commande à chaque heure pleine). Dans une invite de commandes
+(`cmd`), en adaptant le chemin du dépôt :
+
+```
+schtasks /Create /TN "CroixBleue - planificateur Laravel" /SC MINUTE /MO 1 /TR "\"C:\laragon\bin\php\php-8.3.26-Win32-vs16-x64\php.exe\" \"C:\chemin\vers\plateformecroixbleue\backend\artisan\" schedule:run"
+```
+
+Ou, dans l'interface « Planificateur de tâches » : *Créer une tâche*, déclencheur « Une fois », répéter
+toutes les **1 minute** pour une durée **indéfinie** ; action « Démarrer un programme » avec pour
+programme le `php.exe` de Laragon, pour arguments `artisan schedule:run` et pour dossier de départ
+`…\plateformecroixbleue\backend`. La tâche s'exécute tant que la session Windows est ouverte.
+Pour la supprimer après la démonstration :
+
+```
+schtasks /Delete /TN "CroixBleue - planificateur Laravel" /F
+```
 
 ## Tests
 

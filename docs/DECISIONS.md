@@ -284,3 +284,24 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   ensuite) avec un compte temporaire `verif.admin@exemple.test`, supprimé après : période par défaut,
   filtrage par mois, erreur de période, affichage à 375 px sans défilement horizontal.
 - Correction hors module : caractère de contrôle dans le chemin de Mailpit du README.
+
+## Module 10 — tâche planifiée
+
+- Commande `rendezvous:marquer-passes` (`app/Console/Commands/MarquerRendezVousPasses.php`) : une seule
+  requête `UPDATE` sur les rendez-vous `confirme` dont `date_heure <= maintenant` (même borne que
+  `RendezVousPolicy` et `CreneauService`, qui considèrent un rendez-vous commencé à son heure exacte).
+  Les statuts `a_reprogrammer`, `annule` et `passe` ne sont jamais modifiés. Elle affiche le nombre de
+  rendez-vous traités et n'envoie **aucun courriel** (ce n'est pas un des quatre événements de la
+  section 9 ; vérifié par un test).
+- Planification : `Schedule::command('rendezvous:marquer-passes')->hourly()->withoutOverlapping()` dans
+  `routes/console.php` (à chaque heure pleine). `withoutOverlapping()` ajouté par précaution (verrou dans
+  le cache `database`).
+- Tests (`TachePlanifieeTest`) : T12 (confirmés dépassés, y compris à l'heure exacte → `passe` ; futurs,
+  « à reprogrammer », annulés et déjà passés inchangés, `CarbonImmutable::setTestNow()`), exécution
+  répétée, et présence de la commande dans le planificateur avec l'expression `0 * * * *`.
+- README : `schedule:work` en développement ; en démonstration, tâche Windows appelant `schedule:run`
+  chaque minute (commande `schtasks` et marche à suivre dans l'interface). La création de la tâche
+  Windows n'a pas été faite sur le poste (réglage du système, laissé à l'auteur).
+- Vérification : `schedule:list` (prochaine exécution à l'heure pleine), `schedule:test`, puis sur la base
+  de développement un rendez-vous confirmé fictif daté de trois jours plus tôt, passé à « passé » par la
+  commande, puis supprimé.
