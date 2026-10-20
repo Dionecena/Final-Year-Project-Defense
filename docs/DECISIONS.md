@@ -44,3 +44,18 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
 - Mot de passe : 8 caractères minimum, au moins une lettre et un chiffre.
 - Le même message générique « Identifiants incorrects. » est renvoyé pour un compte désactivé.
 - Prévu pour le module 5 : un médecin désactivé ne doit plus proposer de créneaux.
+
+## Module 3 — spécialités
+
+- `GET, POST, PATCH /api/admin/specialites` ; aucune route de suppression (section 14), vérifié
+  par un test (405).
+- Libellé : obligatoire, 100 caractères, espaces superflus retirés, **unique sans tenir compte de
+  la casse** (« orl » est refusé si « ORL » existe). Description facultative (1 000 caractères),
+  une description vide est enregistrée à `null`.
+- La liste de l'administrateur indique le nombre de médecins de chaque spécialité
+  (`nombre_medecins`), absent de la liste publique.
+- Le libellé sert de clé dans `config/preconsultation.php` (`saisie_restreinte`) et
+  `config/orientation.php` : l'écran avertit l'administrateur qu'il faut le modifier avec prudence.
+- Pas de `SpecialitePolicy` à enregistrer : le nom suit la convention de Laravel.
+- Vérification dans le navigateur avec des comptes temporaires `verif.*@exemple.test` (les
+  identifiants de `.env` ne sont pas lus par l'assistant), effacés par `migrate:fresh`.

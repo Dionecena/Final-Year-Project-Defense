@@ -8,7 +8,7 @@ direct de la clinique. Projet de mémoire de Licence en Génie Logiciel.
 | `backend/` | API Laravel 12 (PHP 8.3), Sanctum en mode SPA, PostgreSQL |
 | `frontend/` | SPA React 18 + TypeScript + Vite + Tailwind CSS |
 
-> État : modules 1 (socle) et 2 (gestion des utilisateurs) terminés. Ce README est complété à chaque module.
+> État : modules 1 (socle), 2 (gestion des utilisateurs) et 3 (spécialités) terminés. Ce README est complété à chaque module.
 
 ## Prérequis
 

@@ -13,6 +13,15 @@ export interface Utilisateur {
   specialite?: { id: number; libelle: string } | null
 }
 
+export interface Specialite {
+  id: number
+  libelle: string
+  /** Jours de présence communiqués par la clinique. */
+  description: string | null
+  /** Liste de l'administrateur uniquement. */
+  nombre_medecins?: number
+}
+
 export const LIBELLES_ROLE: Record<Role, string> = {
   patient: 'Patient',
   secretaire: 'Secrétaire',

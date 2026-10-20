@@ -15,7 +15,10 @@ class SpecialiteResource extends JsonResource
         return [
             'id' => $this->id,
             'libelle' => $this->libelle,
+            // Jours de présence communiqués par la clinique.
             'description' => $this->description,
+            // Uniquement dans la liste de l'administrateur.
+            'nombre_medecins' => $this->whenCounted('medecins'),
         ];
     }
 }

@@ -6,7 +6,9 @@ import PageEnConstruction from './components/PageEnConstruction'
 import Accueil from './pages/Accueil'
 import Connexion from './pages/Connexion'
 import Inscription from './pages/Inscription'
+import GestionSpecialites from './pages/admin/GestionSpecialites'
 import Utilisateurs from './pages/admin/Utilisateurs'
+import Specialites from './pages/Specialites'
 import PageIntrouvable from './pages/PageIntrouvable'
 
 export default function App() {
@@ -17,7 +19,7 @@ export default function App() {
           <Route element={<Layout />}>
             {/* Pages publiques */}
             <Route index element={<Accueil />} />
-            <Route path="specialites" element={<PageEnConstruction titre="Spécialités" module={3} />} />
+            <Route path="specialites" element={<Specialites />} />
             <Route path="connexion" element={<Connexion />} />
             <Route path="inscription" element={<Inscription />} />
 
@@ -45,7 +47,7 @@ export default function App() {
             <Route path="admin" element={<RequireRole roles={['administrateur']} />}>
               <Route index element={<PageEnConstruction titre="Statistiques" module={9} />} />
               <Route path="utilisateurs" element={<Utilisateurs />} />
-              <Route path="specialites" element={<PageEnConstruction titre="Gestion des spécialités" module={3} />} />
+              <Route path="specialites" element={<GestionSpecialites />} />
             </Route>
 
             <Route path="*" element={<PageIntrouvable />} />

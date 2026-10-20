@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\SpecialiteController as AdminSpecialiteController;
 use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SpecialiteController;
@@ -28,6 +29,11 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'show']);
         Route::patch('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'update']);
         Route::post('/utilisateurs/{utilisateur}/desactivation', [UtilisateurController::class, 'desactiver']);
+
+        // Spécialités : pas de route de suppression (section 14).
+        Route::get('/specialites', [AdminSpecialiteController::class, 'index']);
+        Route::post('/specialites', [AdminSpecialiteController::class, 'store']);
+        Route::patch('/specialites/{specialite}', [AdminSpecialiteController::class, 'update']);
     });
 
 });
