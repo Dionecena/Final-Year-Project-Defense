@@ -101,8 +101,8 @@ Décisions techniques ou de sécurité, prises pendant le développement :
     Laragon : une requête d'API passe d'environ 1,5 s à 0,45 s en local avec Supabase.
 11. **Page d'accueil** : la mise en page reprend le modèle fourni, mais tout contenu non conforme a
     été retiré (nom commercial, chiffres inventés, médecins nommés, témoignages, services hors
-    périmètre). Les animations 3D sont désactivées sur smartphone et pour les utilisateurs qui
-    demandent de réduire les animations.
+    périmètre). Les animations 3D s'affichent aussi sur smartphone, en version allégée, avec une mise en page
+    mobile dédiée ; elles sont désactivées pour les utilisateurs qui demandent de réduire les animations.
 12. Pas de colonne `remember_token` (pas de « se souvenir de moi »).
 
 Limites connues :

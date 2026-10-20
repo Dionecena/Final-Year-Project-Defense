@@ -30,10 +30,13 @@ export default function Accueil() {
     <div className="overflow-x-hidden">
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primaire-50 via-gray-50 to-medical-50">
-        <div className="pointer-events-none absolute inset-y-0 -right-16 hidden w-[55%] md:block">
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-medical-50 blur-3xl md:hidden" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-16 h-80 w-80 rounded-full bg-primaire-100 blur-3xl md:hidden" />
+        {/* Sphère : en haut à droite, derrière le titre, sur smartphone ; à droite du texte sur grand écran. */}
+        <div className="pointer-events-none absolute -right-32 -top-10 h-[24rem] w-[24rem] opacity-90 md:inset-y-0 md:-right-16 md:top-0 md:h-auto md:w-[55%] md:opacity-100">
           <Animation3D type="orbe" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24 md:py-28">
+        <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-24 sm:py-24 md:py-28">
           <div className="max-w-xl">
             <Revelation>
               <p className="inline-flex items-center gap-2 rounded-full border border-primaire-600/15 bg-primaire-600/5 px-4 py-1.5 text-xs font-medium text-primaire-700">
@@ -53,17 +56,17 @@ export default function Accueil() {
               </p>
             </Revelation>
             <Revelation delai={300}>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
                   to={cible}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primaire-600 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:bg-primaire-700 motion-safe:hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primaire-600 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:bg-primaire-700 motion-safe:hover:-translate-y-0.5"
                 >
                   <IconeCalendrier />
                   {libelleCible}
                 </Link>
                 <a
                   href="#specialites"
-                  className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-6 py-3.5 font-semibold text-gray-900 transition hover:border-gray-400 motion-safe:hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white/80 px-6 backdrop-blur py-3.5 font-semibold text-gray-900 transition hover:border-gray-400 motion-safe:hover:-translate-y-0.5"
                 >
                   Voir les spécialités
                 </a>
@@ -87,8 +90,10 @@ export default function Accueil() {
       </section>
 
       {/* Points clés (cartes « verre » du modèle, sans chiffre inventé) */}
-      <section aria-label="En bref" className="mx-auto max-w-6xl px-4 py-14">
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="En bref" className="relative mx-auto max-w-6xl px-4 py-14">
+        <div aria-hidden="true" className="pointer-events-none absolute left-1/4 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-primaire-100 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-1/4 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-medical-50 blur-3xl" />
+        <ul className="relative grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <CarteVerre delai={0} titre={specialites ? String(specialites.length || '–') : '…'} texte="spécialités proposées" />
           <CarteVerre delai={100} titre="Créneaux réels" texte="selon les disponibilités des médecins" />
           <CarteVerre delai={200} titre="Confirmation" texte="immédiate, puis par courriel" />
@@ -99,7 +104,8 @@ export default function Accueil() {
       {/* Services */}
       <section id="services" aria-labelledby="titre-services" className="bg-white px-4 py-20">
         <EnTeteSection id="titre-services" etiquette="Services" titre="Ce que vous pouvez faire en ligne" />
-        <div className="mx-auto mt-12 grid max-w-6xl gap-5 md:grid-cols-3">
+        <p className="mt-3 text-center text-xs text-gray-500 md:hidden" aria-hidden="true">Faites glisser pour voir les services →</p>
+        <div className="-mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] md:mx-auto md:mt-12 md:grid md:max-w-6xl md:grid-cols-3 md:gap-5 md:overflow-visible md:p-0">
           <CarteService delai={0} icone={<IconeCalendrier />} couleur="bg-primaire-100 text-primaire-700" titre="Prise de rendez-vous" vedette>
             Choisissez une spécialité, un médecin et un créneau parmi ceux réellement libres. Le rendez-vous est confirmé
             immédiatement.
@@ -117,9 +123,9 @@ export default function Accueil() {
       </section>
 
       {/* Transition : onde cardiaque */}
-      <section aria-hidden="true" className="relative h-48 overflow-hidden bg-gradient-to-b from-white via-primaire-50 to-gray-50 md:h-80">
+      <section aria-hidden="true" className="relative h-64 overflow-hidden bg-gradient-to-b from-white via-primaire-50 to-gray-50 md:h-80">
         <Animation3D type="onde" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.85)_0%,rgba(255,255,255,0.4)_35%,transparent_65%)] px-4 text-center">
           <p className="text-xl font-bold tracking-tight text-primaire-700">Préparez votre consultation</p>
           <p className="mt-1 text-sm text-gray-600">en quelques minutes, depuis votre téléphone</p>
         </div>
@@ -146,12 +152,13 @@ export default function Accueil() {
               </Link>
             </p>
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               {specialites.map((s, i) => (
                 <li key={s.id}>
                   <Revelation delai={(i % 4) * 80} className="h-full">
-                    <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-primaire-600/30 hover:shadow-md">
-                      <h3 className="font-bold text-gray-900">{s.libelle}</h3>
+                    <div className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primaire-600/30 hover:shadow-md sm:p-5">
+                      <span aria-hidden="true" className="mb-2 block h-1 w-8 rounded-full bg-gradient-to-r from-primaire-600 to-medical-700" />
+                      <h3 className="text-sm font-bold text-gray-900 sm:text-base">{s.libelle}</h3>
                       <p className="mt-1 text-sm text-primaire-700">{joursPresence(s.description)}</p>
                     </div>
                   </Revelation>
@@ -165,7 +172,8 @@ export default function Accueil() {
       {/* Parcours */}
       <section id="parcours" aria-labelledby="titre-parcours" className="bg-white px-4 py-20">
         <EnTeteSection id="titre-parcours" etiquette="Comment ça marche" titre="Trois étapes simples" />
-        <ol className="relative mx-auto mt-12 grid max-w-4xl gap-10 md:grid-cols-3">
+        <ol className="relative mx-auto mt-12 grid max-w-4xl gap-8 md:grid-cols-3 md:gap-10">
+          <div aria-hidden="true" className="absolute bottom-7 left-7 top-7 w-0.5 bg-gradient-to-b from-primaire-600/40 via-primaire-600/20 to-transparent md:hidden" />
           <div aria-hidden="true" className="absolute left-[18%] right-[18%] top-7 hidden h-0.5 bg-gradient-to-r from-transparent via-primaire-600/25 to-transparent md:block" />
           <Etape numero={1} titre="Créez votre compte" delai={0}>
             Inscrivez-vous en quelques secondes avec votre adresse électronique et votre téléphone.
@@ -186,7 +194,7 @@ export default function Accueil() {
           className="pointer-events-none absolute left-1/2 top-1/2 h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_70%)]"
         />
         <Revelation className="relative mx-auto max-w-2xl">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Prêt à prendre rendez-vous ?</h2>
+          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Prêt à prendre {'rendez‑vous ?'}</h2>
           <p className="mt-4 text-gray-300">
             Réservez votre consultation en ligne, ou présentez-vous directement à l'accueil de la clinique.
           </p>
@@ -228,8 +236,8 @@ function CarteVerre({ titre, texte, delai }: { titre: string; texte: string; del
   return (
     <li>
       <Revelation delai={delai} className="h-full">
-        <div className="h-full rounded-2xl border border-white/60 bg-white/70 p-6 text-center shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl">
-          <p className="text-2xl font-extrabold tracking-tight text-primaire-600">{titre}</p>
+        <div className="h-full rounded-2xl border border-white/60 bg-white/70 p-4 text-center shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:p-6">
+          <p className="text-lg font-extrabold leading-tight tracking-tight text-primaire-600 sm:text-2xl">{titre}</p>
           <p className="mt-1 text-sm font-medium text-gray-600">{texte}</p>
         </div>
       </Revelation>
@@ -253,7 +261,7 @@ function CarteService({
   vedette?: boolean
 }) {
   return (
-    <Revelation delai={delai} className="h-full">
+    <Revelation delai={delai} className="w-[82%] shrink-0 snap-center md:h-full md:w-auto">
       <article
         className={`h-full rounded-2xl border p-7 transition motion-safe:hover:-translate-y-1 hover:shadow-lg ${
           vedette ? 'border-primaire-600/20 bg-gradient-to-br from-primaire-50 to-gray-50' : 'border-gray-200 bg-gray-50'
@@ -269,19 +277,21 @@ function CarteService({
 
 function Etape({ numero, titre, children, delai }: { numero: number; titre: string; children: ReactNode; delai: number }) {
   return (
-    <li className="relative text-center">
-      <Revelation delai={delai}>
+    <li className="relative">
+      <Revelation delai={delai} className="flex items-start gap-4 md:block md:text-center">
         <span
           aria-hidden="true"
-          className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primaire-600 text-xl font-extrabold text-white shadow-[0_4px_20px_rgba(37,99,235,0.25)]"
+          className="relative flex h-14 w-14 shrink-0 md:mx-auto md:mb-5 items-center justify-center rounded-full bg-primaire-600 text-xl font-extrabold text-white shadow-[0_4px_20px_rgba(37,99,235,0.25)]"
         >
           {numero}
         </span>
-        <h3 className="font-bold tracking-tight text-gray-900">
-          <span className="sr-only">Étape {numero} : </span>
-          {titre}
-        </h3>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-gray-600">{children}</p>
+        <div className="pt-1 md:pt-0">
+          <h3 className="font-bold tracking-tight text-gray-900">
+            <span className="sr-only">Étape {numero} : </span>
+            {titre}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-gray-600 md:mx-auto md:max-w-xs">{children}</p>
+        </div>
       </Revelation>
     </li>
   )

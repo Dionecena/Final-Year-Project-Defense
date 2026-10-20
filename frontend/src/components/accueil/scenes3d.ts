@@ -1,21 +1,22 @@
 /**
  * Animations décoratives de la page d'accueil, reprises du modèle fourni (docs/modele_accueil.html) :
  * sphère en fil de fer et onde cardiaque. Ce module importe three.js ; il n'est chargé qu'à la
- * demande (import dynamique) et seulement sur grand écran sans préférence « mouvement réduit ».
+ * demande (import dynamique), jamais avec la préférence « mouvement réduit ». Sur smartphone
+ * (option compact), la géométrie et la résolution sont allégées pour rester fluides.
  */
 import * as THREE from 'three'
 
 export type Scene3D = 'orbe' | 'onde'
 
 /** Démarre l'animation dans le canevas et renvoie la fonction qui l'arrête et libère la mémoire. */
-export function demarrerScene(type: Scene3D, canvas: HTMLCanvasElement): () => void {
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+export function demarrerScene(type: Scene3D, canvas: HTMLCanvasElement, { compact = false } = {}): () => void {
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !compact, powerPreference: 'low-power' })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, compact ? 1.5 : 2))
   renderer.setClearColor(0x000000, 0)
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(type === 'orbe' ? 45 : 55, 1, 0.1, 200)
-  const animer = type === 'orbe' ? construireOrbe(scene, camera) : construireOnde(scene, camera)
+  const animer = type === 'orbe' ? construireOrbe(scene, camera, compact) : construireOnde(scene, camera, compact)
 
   function redimensionner() {
     const largeur = canvas.clientWidth
@@ -64,27 +65,34 @@ function materiau(couleur: number, opacite: number, filDeFer = true) {
 }
 
 /** Sphère en fil de fer, halo et particules (hero du modèle). */
-function construireOrbe(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
-  camera.position.z = 4
+function construireOrbe(scene: THREE.Scene, camera: THREE.PerspectiveCamera, compact: boolean) {
+  // Sur smartphone, la sphère est reculée pour tenir entière dans son canevas carré.
+  camera.position.z = compact ? 5.2 : 4
 
-  const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 4), materiau(0x2563eb, 0.12))
-  const halo = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 3), materiau(0x0ea5e9, 0.05, false))
+  const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, compact ? 3 : 4), materiau(0x2563eb, compact ? 0.15 : 0.12))
+  const halo = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 3), materiau(0x0ea5e9, compact ? 0.035 : 0.05, false))
 
-  const nombre = 200
+  const nombre = compact ? 140 : 200
   const positions = new Float32Array(nombre * 3)
   for (let i = 0; i < positions.length; i++) positions[i] = (Math.random() - 0.5) * 6
   const geometrieParticules = new THREE.BufferGeometry()
   geometrieParticules.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   const particules = new THREE.Points(
     geometrieParticules,
-    new THREE.PointsMaterial({ color: 0x3b82f6, size: 0.015, transparent: true, opacity: 0.35 }),
+    new THREE.PointsMaterial({ color: 0x3b82f6, size: compact ? 0.025 : 0.015, transparent: true, opacity: 0.45 }),
   )
 
   scene.add(sphere, halo, particules)
 
+  // La sphère accélère brièvement quand on fait défiler la page (effet sensible au toucher).
+  let dernierDefilement = window.scrollY
+  let elan = 0
+
   return () => {
-    sphere.rotation.x += 0.001
-    sphere.rotation.y += 0.002
+    elan = elan * 0.92 + Math.min(Math.abs(window.scrollY - dernierDefilement), 60) * 0.0004
+    dernierDefilement = window.scrollY
+    sphere.rotation.x += 0.001 + elan * 0.5
+    sphere.rotation.y += 0.002 + elan
     halo.rotation.x -= 0.0005
     halo.rotation.y -= 0.001
     particules.rotation.y += 0.0003
@@ -107,14 +115,14 @@ function ecg(t: number) {
 }
 
 /** Nappe en fil de fer animée par une onde cardiaque (transition du modèle). */
-function construireOnde(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
+function construireOnde(scene: THREE.Scene, camera: THREE.PerspectiveCamera, compact: boolean) {
   camera.position.set(0, 8, 18)
   camera.lookAt(0, 0, 0)
 
   const largeur = 90
   const profondeur = 36
-  const nappe = new THREE.Mesh(new THREE.PlaneGeometry(largeur, profondeur, 220, 60), materiau(0x2563eb, 0.09))
-  const reflet = new THREE.Mesh(new THREE.PlaneGeometry(largeur, profondeur, 220, 60), materiau(0x0ea5e9, 0.04))
+  const nappe = new THREE.Mesh(new THREE.PlaneGeometry(largeur, profondeur, compact ? 80 : 220, compact ? 22 : 60), materiau(0x2563eb, compact ? 0.11 : 0.09))
+  const reflet = new THREE.Mesh(new THREE.PlaneGeometry(largeur, profondeur, compact ? 80 : 220, compact ? 22 : 60), materiau(0x0ea5e9, 0.05))
   for (const maillage of [nappe, reflet]) maillage.rotation.x = -Math.PI / 2.8
   reflet.position.y = 0.3
   scene.add(nappe, reflet)

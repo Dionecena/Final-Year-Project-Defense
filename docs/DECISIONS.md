@@ -318,7 +318,7 @@ Ce journal alimente la section « écarts » de `RAPPORT.md`.
   chiffre affiché : le nombre de spécialités, lu par l'API), services réels (réservation,
   préconsultation avec mention RG03, courriels), onde cardiaque, spécialités et jours de présence
   (à la place de l'équipe et des témoignages), trois étapes, appel final. three.js 0.180.0 en paquet
-  npm, chargé à la demande dans un fichier séparé, jamais sous 768 px ni avec `prefers-reduced-motion`.
+  npm, chargé à la demande dans un fichier séparé, jamais avec `prefers-reduced-motion`. **À la demande de l'auteur, les animations s'affichent aussi sur smartphone**, en version allégée (option `compact` sous 768 px : géométrie et résolution réduites, sphère derrière le titre avec des halos colorés) ; mise en page mobile dédiée : cartes « verre » et spécialités sur deux colonnes, services en carrousel horizontal, étapes en frise verticale.
   Police Inter auto-hébergée (`@fontsource-variable/inter` 5.2.8). La page occupe toute la largeur
   (`Layout` : `pleineLargeur` sur `/`).
 - **Accessibilité** : nom accessible des boutons radio des spécialités (remarque du module 6) ; tous
