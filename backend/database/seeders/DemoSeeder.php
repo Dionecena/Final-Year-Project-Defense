@@ -40,6 +40,7 @@ class DemoSeeder extends Seeder
         'Neurologie' => [3],
         'Neurochirurgie' => [4],
         'Chirurgie générale' => [4],
+        'Gynécologie' => [5],
     ];
 
     // Plage horaire fictive commune à tous les médecins de démonstration.

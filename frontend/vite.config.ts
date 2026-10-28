@@ -24,6 +24,9 @@ export default defineConfig(({ command, mode }) => {
         '/sanctum': { target: API },
         '/login': { target: API },
         '/logout': { target: API },
+        // Fichiers de l'application installable, servis par Laravel (backend/public).
+        '/manifest.json': { target: API },
+        '/icones': { target: API },
       },
     },
 

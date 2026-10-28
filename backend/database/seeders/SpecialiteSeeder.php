@@ -22,6 +22,7 @@ class SpecialiteSeeder extends Seeder
         'Neurologie' => 'Mercredi',
         'Neurochirurgie' => 'Jeudi',
         'Chirurgie générale' => 'Jeudi',
+        'Gynécologie' => 'Vendredi',
     ];
 
     public function run(): void

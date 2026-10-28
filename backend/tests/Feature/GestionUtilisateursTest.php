@@ -161,6 +161,6 @@ class GestionUtilisateursTest extends TestCase
 
     public function test_liste_publique_des_specialites(): void
     {
-        $this->getJson('/api/specialites')->assertOk()->assertJsonCount(10, 'data');
+        $this->getJson('/api/specialites')->assertOk()->assertJsonCount(11, 'data');
     }
 }

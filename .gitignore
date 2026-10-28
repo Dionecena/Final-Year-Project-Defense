@@ -8,3 +8,6 @@ docs/
 # Captures d'écran et logos, outils de capture (non versionnés)
 captures/
 scripts/
+
+# Vidéo de démonstration (Remotion, non versionnée)
+video/

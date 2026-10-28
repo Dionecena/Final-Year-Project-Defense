@@ -28,7 +28,7 @@ class GestionSpecialitesTest extends TestCase
     {
         $this->getJson('/api/specialites')
             ->assertOk()
-            ->assertJsonCount(10, 'data')
+            ->assertJsonCount(11, 'data')
             ->assertJsonFragment(['libelle' => 'Ophtalmologie', 'description' => 'Jours de présence : Mardi'])
             ->assertJsonMissingPath('data.0.nombre_medecins');
     }
@@ -56,7 +56,7 @@ class GestionSpecialitesTest extends TestCase
 
         $this->actingAs($this->admin)->getJson('/api/admin/specialites')
             ->assertOk()
-            ->assertJsonCount(10, 'data')
+            ->assertJsonCount(11, 'data')
             ->assertJsonFragment(['libelle' => 'Cardiologie', 'nombre_medecins' => 1]);
     }
 
@@ -92,7 +92,7 @@ class GestionSpecialitesTest extends TestCase
                 ->assertJsonValidationErrors(['libelle' => 'Une spécialité porte déjà ce libellé.']);
         }
 
-        $this->assertSame(10, Specialite::count());
+        $this->assertSame(11, Specialite::count());
     }
 
     public function test_modification_du_libelle_et_de_la_description(): void

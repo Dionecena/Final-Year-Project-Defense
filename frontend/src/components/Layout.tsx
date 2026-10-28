@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { LIBELLES_ROLE, type Role } from '../types'
+import InstallationApplication from './InstallationApplication'
 
 export const TITRE_PLATEFORME = 'Prise de rendez-vous en ligne – Clinique Croix Bleue'
 
@@ -124,6 +125,9 @@ export default function Layout() {
       <main id="contenu" className={pleineLargeur ? 'w-full flex-1' : 'mx-auto w-full max-w-6xl flex-1 px-4 py-6'}>
         <Outlet />
       </main>
+
+      {/* Proposition d'installation (PWA) : utilisateurs connectés uniquement, jamais aux visiteurs. */}
+      {utilisateur && <InstallationApplication />}
 
       <footer className="border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-gray-600 sm:flex-row sm:justify-between">

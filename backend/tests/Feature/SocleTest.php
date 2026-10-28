@@ -25,11 +25,11 @@ class SocleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_le_seeder_cree_les_dix_specialites_avec_les_jours_de_presence(): void
+    public function test_le_seeder_cree_les_onze_specialites_avec_les_jours_de_presence(): void
     {
         $this->seed(SpecialiteSeeder::class);
 
-        $this->assertSame(10, Specialite::count());
+        $this->assertSame(11, Specialite::count());
         $this->assertSame('Jours de présence : Mardi', Specialite::where('libelle', 'Ophtalmologie')->value('description'));
     }
 
@@ -51,7 +51,7 @@ class SocleTest extends TestCase
 
         $this->seed(DemoSeeder::class);
 
-        $this->assertSame(10, Medecin::count());
+        $this->assertSame(11, Medecin::count());
         $this->assertSame(1, User::secretaires()->count());
         $this->assertSame(3, User::patients()->count());
         $this->assertGreaterThan(0, RendezVous::count());

@@ -153,7 +153,7 @@ class StatistiquesTest extends TestCase
         $this->assertSame('À reprogrammer', collect($data['rendez_vous']['par_statut'])->firstWhere('statut', 'a_reprogrammer')['libelle']);
 
         $parSpecialite = self::parCle($data['rendez_vous']['par_specialite'], 'libelle');
-        $this->assertCount(10, $parSpecialite);
+        $this->assertCount(11, $parSpecialite);
         $this->assertSame(4, $parSpecialite['Cardiologie']);
         $this->assertSame(2, $parSpecialite['Pédiatrie']);
         $this->assertSame(0, $parSpecialite['Dermatologie']);
