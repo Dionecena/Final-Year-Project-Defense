@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { Alerte, Bouton, Champ } from '../components/Formulaire'
+import { Alerte, Bouton, CaseACocher, Champ } from '../components/Formulaire'
 import { api, erreursChamps, initialiserCsrf, messageErreur } from '../lib/api'
 import { ACCUEIL_ROLE } from '../types'
 
@@ -12,6 +12,7 @@ export default function Inscription() {
   const { utilisateur, rafraichir } = useAuth()
   const navigate = useNavigate()
   const [valeurs, setValeurs] = useState(VIDE)
+  const [consentement, setConsentement] = useState(false)
   const [erreurs, setErreurs] = useState<Record<string, string>>({})
   const [erreurGenerale, setErreurGenerale] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
@@ -31,7 +32,7 @@ export default function Inscription() {
     setEnvoi(true)
     try {
       await initialiserCsrf()
-      await api.post('/api/inscription', valeurs)
+      await api.post('/api/inscription', { ...valeurs, consentement })
       await rafraichir()
       navigate('/patient', { replace: true })
     } catch (err) {
@@ -65,6 +66,25 @@ export default function Inscription() {
           {...champ('password')}
         />
         <Champ label="Confirmation du mot de passe" type="password" autoComplete="new-password" required {...champ('password_confirmation')} />
+        <CaseACocher
+          required
+          checked={consentement}
+          onChange={(e) => setConsentement(e.target.checked)}
+          erreur={erreurs.consentement}
+          label={
+            <>
+              J'ai lu et j'accepte la{' '}
+              <Link to="/confidentialite" target="_blank" className="font-medium text-primaire-700 underline">
+                politique de confidentialité
+              </Link>{' '}
+              et les{' '}
+              <Link to="/conditions-utilisation" target="_blank" className="font-medium text-primaire-700 underline">
+                conditions d'utilisation
+              </Link>
+              .
+            </>
+          }
+        />
         <Bouton type="submit" disabled={envoi} className="w-full">
           {envoi ? 'Création…' : 'Créer mon compte'}
         </Bouton>

@@ -5,6 +5,7 @@ import Layout from './components/Layout'
 import Accueil from './pages/Accueil'
 import Connexion from './pages/Connexion'
 import Inscription from './pages/Inscription'
+import { ConditionsUtilisation, PolitiqueConfidentialite } from './pages/Juridique'
 import GestionSpecialites from './pages/admin/GestionSpecialites'
 import Statistiques from './pages/admin/Statistiques'
 import Utilisateurs from './pages/admin/Utilisateurs'
@@ -30,6 +31,8 @@ export default function App() {
             <Route path="specialites" element={<Specialites />} />
             <Route path="connexion" element={<Connexion />} />
             <Route path="inscription" element={<Inscription />} />
+            <Route path="confidentialite" element={<PolitiqueConfidentialite />} />
+            <Route path="conditions-utilisation" element={<ConditionsUtilisation />} />
 
             {/* Espace patient */}
             <Route path="patient" element={<RequireRole roles={['patient']} />}>

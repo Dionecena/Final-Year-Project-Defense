@@ -23,6 +23,7 @@ class AuthentificationTest extends TestCase
             'telephone' => '00 000 00 01',
             'password' => 'motdepasse1',
             'password_confirmation' => 'motdepasse1',
+            'consentement' => true,
         ];
     }
 
@@ -38,6 +39,21 @@ class AuthentificationTest extends TestCase
         $user = User::where('email', 'patient@exemple.test')->firstOrFail();
         $this->assertNotSame('motdepasse1', $user->password);
         $this->assertAuthenticatedAs($user, 'web');
+    }
+
+    public function test_inscription_exige_le_consentement_et_l_enregistre(): void
+    {
+        $sansConsentement = array_diff_key($this->donneesInscription(), ['consentement' => true]);
+        foreach ([$sansConsentement, ['consentement' => false] + $sansConsentement] as $donnees) {
+            $this->withHeaders($this->enTetesSpa())
+                ->postJson('/api/inscription', $donnees)
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['consentement' => 'Vous devez accepter la politique de confidentialité et les conditions d\'utilisation.']);
+        }
+        $this->assertSame(0, User::count());
+
+        $this->withHeaders($this->enTetesSpa())->postJson('/api/inscription', $this->donneesInscription())->assertCreated();
+        $this->assertNotNull(User::sole()->date_consentement);
     }
 
     public function test_inscription_ignore_un_role_fourni_par_le_client(): void

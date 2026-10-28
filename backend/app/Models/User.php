@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'actif',
+        'date_consentement',
     ];
 
     protected $hidden = [
@@ -40,6 +41,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => Role::class,
             'actif' => 'boolean',
+            'date_consentement' => 'datetime',
         ];
     }
 

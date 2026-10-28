@@ -126,9 +126,17 @@ export default function Layout() {
       </main>
 
       <footer className="border-t border-gray-200 bg-white">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-gray-600">
-          {TITRE_PLATEFORME}. Vous pouvez toujours vous présenter directement à l'accueil de la clinique, sans rendez-vous.
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-gray-600 sm:flex-row sm:justify-between">
+          <p>{TITRE_PLATEFORME}. Vous pouvez toujours vous présenter directement à l'accueil de la clinique, sans rendez-vous.</p>
+          <nav aria-label="Informations légales" className="flex shrink-0 gap-4">
+            <Link to="/confidentialite" className="underline hover:text-gray-900">
+              Politique de confidentialité
+            </Link>
+            <Link to="/conditions-utilisation" className="underline hover:text-gray-900">
+              Conditions d'utilisation
+            </Link>
+          </nav>
+        </div>
       </footer>
     </div>
   )

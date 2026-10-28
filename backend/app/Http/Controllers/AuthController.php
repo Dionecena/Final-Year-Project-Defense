@@ -22,6 +22,7 @@ class AuthController extends Controller
         $user = User::create($request->safe()->only(['nom', 'prenom', 'email', 'telephone', 'password']) + [
             'role' => Role::Patient->value,
             'actif' => true,
+            'date_consentement' => now(),
         ]);
 
         Auth::guard('web')->login($user);

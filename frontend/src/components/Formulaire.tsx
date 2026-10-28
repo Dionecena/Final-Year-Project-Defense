@@ -118,6 +118,42 @@ export function Liste({ label, erreur, id, className, children, ...props }: Prop
   )
 }
 
+interface ProprietesCase extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  label: ReactNode
+  erreur?: string
+}
+
+/** Case à cocher avec label cliquable et message d'erreur accessible. */
+export function CaseACocher({ label, erreur, id, className, ...props }: ProprietesCase) {
+  const idAuto = useId()
+  const idChamp = id ?? idAuto
+  const idErreur = erreur ? `${idChamp}-erreur` : undefined
+
+  return (
+    <div className={className}>
+      <div className="flex items-start gap-3">
+        <input
+          id={idChamp}
+          type="checkbox"
+          aria-invalid={erreur ? true : undefined}
+          aria-describedby={idErreur}
+          className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primaire-600"
+          {...props}
+        />
+        <label htmlFor={idChamp} className="text-sm text-gray-800">
+          {label}
+          {props.required && <span aria-hidden="true" className="text-red-700"> *</span>}
+        </label>
+      </div>
+      {erreur && (
+        <p id={idErreur} className="mt-1 text-sm text-red-700">
+          {erreur}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function Alerte({ type = 'erreur', children }: { type?: 'erreur' | 'succes' | 'info'; children: ReactNode }) {
   const styles = {
     erreur: 'border-red-300 bg-red-50 text-red-800',

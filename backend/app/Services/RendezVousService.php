@@ -61,6 +61,8 @@ class RendezVousService
                         $medecin->specialite, $preconsultation['motif'], $preconsultation['symptomes'],
                     )?->id,
                     'date_saisie' => CarbonImmutable::now(),
+                    // Consentement exigé par StoreRendezVousRequest avant toute préconsultation.
+                    'date_consentement' => CarbonImmutable::now(),
                 ]);
             }
 

@@ -122,6 +122,7 @@ class DemoSeeder extends Seeder
             'symptomes' => $symptomes,
             'specialite_suggeree_id' => app(OrientationService::class)->specialiteSuggeree($specialite, $motif, $symptomes)?->id,
             'date_saisie' => CarbonImmutable::now(),
+            'date_consentement' => CarbonImmutable::now(),
         ]);
     }
 
@@ -138,6 +139,8 @@ class DemoSeeder extends Seeder
             'telephone' => '00 000 00 00',
             'role' => $role->value,
             'actif' => true,
+            // Consentement fictif à l'inscription, conservé si le seeder est relancé.
+            'date_consentement' => $role === Role::Patient ? ($user->date_consentement ?? CarbonImmutable::now()) : null,
         ])->save();
 
         return $user;

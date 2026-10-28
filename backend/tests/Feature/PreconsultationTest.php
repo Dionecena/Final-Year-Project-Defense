@@ -76,7 +76,8 @@ class PreconsultationTest extends TestCase
         return $this->actingAs($this->patient)->postJson('/api/rendez-vous', array_filter([
             'medecin_id' => $medecin->id,
             'date_heure' => $dateHeure,
-            'preconsultation' => $preconsultation,
+            // Consentement donné par défaut ; une clé fournie par le test l'emporte.
+            'preconsultation' => $preconsultation === null ? null : $preconsultation + ['consentement' => true],
         ], fn ($v) => $v !== null));
     }
 
@@ -123,6 +124,24 @@ class PreconsultationTest extends TestCase
             'symptomes' => 'Palpitations le soir',
             'specialite_suggeree_id' => null,
         ]);
+    }
+
+    public function test_preconsultation_exige_le_consentement_et_l_enregistre(): void
+    {
+        $saisie = ['motif' => 'Contrôle', 'symptomes' => 'Palpitations le soir'];
+        $message = 'Vous devez consentir au traitement de vos données de santé pour transmettre la préconsultation.';
+
+        $this->actingAs($this->patient)->postJson('/api/rendez-vous', [
+            'medecin_id' => $this->cardiologue->id,
+            'date_heure' => '2026-11-02 09:00',
+            'preconsultation' => $saisie,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['preconsultation.consentement' => $message]);
+        $this->reserver($this->cardiologue, $saisie + ['consentement' => false])
+            ->assertUnprocessable()->assertJsonValidationErrors(['preconsultation.consentement' => $message]);
+        $this->assertDatabaseCount('rendez_vous', 0);
+
+        $this->reserver($this->cardiologue, $saisie)->assertCreated();
+        $this->assertEquals(CarbonImmutable::now(), Preconsultation::sole()->date_consentement);
     }
 
     // --- T05 : motif et symptômes obligatoires -----------------------------------------------

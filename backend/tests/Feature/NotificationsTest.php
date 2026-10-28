@@ -80,7 +80,7 @@ class NotificationsTest extends TestCase
         return $this->actingAs($patient ?? $this->patient)->postJson('/api/rendez-vous', array_filter([
             'medecin_id' => $this->medecin->id,
             'date_heure' => $dateHeure,
-            'preconsultation' => $preconsultation,
+            'preconsultation' => $preconsultation === null ? null : $preconsultation + ['consentement' => true],
         ]));
     }
 

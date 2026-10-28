@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BadgeStatut, estConflit, libelleRendezVous, nomMedecin, SelecteurCreneau, useCreneauxSpecialite } from '../../components/Creneaux'
-import { Alerte, Bouton, Champ, ZoneTexte } from '../../components/Formulaire'
+import { Alerte, Bouton, CaseACocher, Champ, ZoneTexte } from '../../components/Formulaire'
 import { api, erreursChamps, messageErreur } from '../../lib/api'
 import { MENTION_NON_DIAGNOSTIC, type Creneau, type RendezVous, type SaisiePreconsultation, type Specialite, type SuggestionOrientation } from '../../types'
 
@@ -29,6 +29,7 @@ export default function PriseRendezVous() {
   const [reserve, setReserve] = useState<RendezVous | null>(null)
   // Préconsultation facultative (RG02) : saisie en cours, puis valeur retenue (null : étape passée).
   const [saisie, setSaisie] = useState<SaisiePreconsultation>({ motif: '', symptomes: '' })
+  const [consentement, setConsentement] = useState(false)
   const [preconsultation, setPreconsultation] = useState<SaisiePreconsultation | null>(null)
   const [erreursPreconsultation, setErreursPreconsultation] = useState<Record<string, string>>({})
   const [suggestion, setSuggestion] = useState<SuggestionOrientation | null>(null)
@@ -77,9 +78,14 @@ export default function PriseRendezVous() {
     e.preventDefault()
     if (!specialite) return
     const valeur = { motif: saisie.motif.trim(), symptomes: saisie.symptomes.trim() }
-    setEnvoi(true)
     setErreur(null)
     setErreursPreconsultation({})
+    // Loi n° 2008-12 : rien n'est transmis sans le consentement (revérifié à la réservation).
+    if (!consentement) {
+      setErreursPreconsultation({ consentement: 'Vous devez consentir au traitement de vos données de santé pour transmettre la préconsultation.' })
+      return
+    }
+    setEnvoi(true)
     try {
       const { data } = await api.post<{ data: { suggestion: SuggestionOrientation | null } }>('/api/orientation/verification', {
         specialite_id: specialite.id,
@@ -125,7 +131,7 @@ export default function PriseRendezVous() {
       const { data } = await api.post<{ data: RendezVous }>('/api/rendez-vous', {
         medecin_id: creneau.medecin.id,
         date_heure: creneau.date_heure,
-        ...(preconsultation ? { preconsultation } : {}),
+        ...(preconsultation ? { preconsultation: { ...preconsultation, consentement: true } } : {}),
       })
       setReserve(data.data)
     } catch (err) {
@@ -270,6 +276,22 @@ export default function PriseRendezVous() {
                     {saisie.symptomes.length} / {specialite.max_symptomes} caractères
                   </span>
                 </div>
+              }
+            />
+            <CaseACocher
+              required
+              checked={consentement}
+              onChange={(e) => setConsentement(e.target.checked)}
+              erreur={erreursPreconsultation.consentement}
+              label={
+                <>
+                  J'accepte que ces informations de santé soient enregistrées et transmises au seul médecin de mon rendez-vous, comme décrit
+                  dans la{' '}
+                  <Link to="/confidentialite" target="_blank" className="font-medium text-primaire-700 underline">
+                    politique de confidentialité
+                  </Link>
+                  .
+                </>
               }
             />
           </div>

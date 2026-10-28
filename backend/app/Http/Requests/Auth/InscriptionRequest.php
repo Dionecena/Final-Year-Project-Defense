@@ -22,6 +22,15 @@ class InscriptionRequest extends FormRequest
             'email' => $this->regleEmail(),
             'telephone' => $this->regleTelephone(),
             'password' => $this->reglePassword(),
+            // Politique de confidentialité et conditions d'utilisation (loi n° 2008-12).
+            'consentement' => ['accepted'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'consentement.accepted' => 'Vous devez accepter la politique de confidentialité et les conditions d\'utilisation.',
         ];
     }
 

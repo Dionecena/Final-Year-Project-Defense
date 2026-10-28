@@ -31,9 +31,12 @@ class StoreRendezVousRequest extends FormRequest
         return [
             ...$this->reglesCreneau(),
             // Collecte minimale (section 10) : aucune autre clé que motif et symptômes.
-            'preconsultation' => ['nullable', 'array:motif,symptomes'],
+            'preconsultation' => ['nullable', 'array:motif,symptomes,consentement'],
             // RG11 : longueur des symptômes selon la spécialité du médecin choisi.
             ...$this->reglesPreconsultation($medecin?->specialite, 'preconsultation.', obligatoire: false),
+            // Données de santé (loi n° 2008-12) : consentement explicite au traitement.
+            // (accepted échoue aussi si la clé manque : la règle ne s'applique qu'avec une préconsultation.)
+            'preconsultation.consentement' => ['exclude_without:preconsultation', 'accepted'],
         ];
     }
 
@@ -43,6 +46,7 @@ class StoreRendezVousRequest extends FormRequest
             'medecin_id.exists' => 'Ce médecin n\'existe pas.',
             'date_heure.date_format' => 'La date et l\'heure doivent être au format AAAA-MM-JJ HH:MM.',
             'preconsultation.array' => 'La préconsultation ne contient que le motif et les symptômes.',
+            'preconsultation.consentement.accepted' => 'Vous devez consentir au traitement de vos données de santé pour transmettre la préconsultation.',
             ...$this->messagesPreconsultation('preconsultation.'),
         ];
     }

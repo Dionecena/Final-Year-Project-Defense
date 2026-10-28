@@ -20,12 +20,14 @@ class Preconsultation extends Model
         'symptomes',
         'specialite_suggeree_id',
         'date_saisie',
+        'date_consentement',
     ];
 
     protected function casts(): array
     {
         return [
             'date_saisie' => 'datetime',
+            'date_consentement' => 'datetime',
         ];
     }
 
