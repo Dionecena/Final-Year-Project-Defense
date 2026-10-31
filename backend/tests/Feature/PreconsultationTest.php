@@ -101,7 +101,7 @@ class PreconsultationTest extends TestCase
         $this->reserver($this->cardiologue, null)->assertCreated();
 
         $this->actingAs($this->patient)->postJson('/api/rendez-vous', [
-            'medecin_id' => $this->cardiologue->id,
+            'medecin_id' => $this->orl->id,
             'date_heure' => '2026-11-02 09:30',
             'preconsultation' => null,
         ])->assertCreated();
@@ -222,7 +222,7 @@ class PreconsultationTest extends TestCase
     {
         $this->verifier('Cardiologie', 'Palpitations', 'Le soir, au repos')
             ->assertOk()
-            ->assertExactJson(['data' => ['suggestion' => null]]);
+            ->assertExactJson(['data' => ['suggestion' => null, 'correspond' => true]]);
 
         // La spécialité choisie fait partie des correspondances, même si une autre en a aussi.
         $this->verifier('Cardiologie', 'Palpitations', 'Et une douleur à l\'oreille')
@@ -235,6 +235,39 @@ class PreconsultationTest extends TestCase
         $this->verifier('Cardiologie', 'Contrôle de routine', 'Aucun symptôme particulier')
             ->assertOk()
             ->assertJsonPath('data.suggestion', null);
+    }
+
+    public function test_motif_qui_ne_correspond_pas_a_la_specialite_choisie_est_signale(): void
+    {
+        // Aucun terme de la gynécologie ni d'une autre spécialité : signalé, sans suggestion.
+        $this->verifier('Gynécologie', "J'ai même pas mal", 'Rien de particulier')
+            ->assertOk()
+            ->assertExactJson(['data' => ['suggestion' => null, 'correspond' => false]]);
+
+        // Terme d'une autre spécialité : signalé, avec la suggestion (T06).
+        $this->verifier('Gynécologie', 'Douleur', "À l'oreille droite")
+            ->assertOk()
+            ->assertJsonPath('data.correspond', false)
+            ->assertJsonPath('data.suggestion.specialite.libelle', 'ORL');
+
+        $this->verifier('Gynécologie', 'Suivi de grossesse', 'Quatrième mois')
+            ->assertOk()
+            ->assertExactJson(['data' => ['suggestion' => null, 'correspond' => true]]);
+    }
+
+    public function test_specialite_sans_termes_accepte_tout_motif(): void
+    {
+        // Médecine générale : aucun terme configuré, rien ne permet de juger (correspond = null).
+        $this->verifier('Médecine générale', "J'ai même pas mal", 'Rien de particulier')
+            ->assertOk()
+            ->assertExactJson(['data' => ['suggestion' => null, 'correspond' => null]]);
+    }
+
+    public function test_un_motif_signale_n_empeche_pas_la_reservation(): void
+    {
+        // Le message est indicatif (RG03, RG04) : le patient peut conserver sa spécialité.
+        $this->reserver($this->cardiologue, ['motif' => "J'ai même pas mal", 'symptomes' => 'Rien de particulier'])
+            ->assertCreated();
     }
 
     public function test_la_specialite_qui_a_le_plus_de_correspondances_est_suggeree(): void

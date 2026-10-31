@@ -37,12 +37,23 @@ class RendezVousService
      * @param  array{motif: string, symptomes: string}|null  $preconsultation  facultative (RG02)
      *
      * @throws CreneauDejaReserveException créneau pris entre-temps (409, RG07)
+     * @throws ValidationException le patient a déjà un rendez-vous à venir dans cette spécialité
      */
     public function reserver(User $patient, Medecin $medecin, CarbonImmutable $dateHeure, ?array $preconsultation = null): RendezVous
     {
         $rendezVous = $this->dansUneTransaction(function () use ($patient, $medecin, $dateHeure, $preconsultation) {
             // 1. Revérification du créneau.
             $this->creneaux->verifier($medecin, $dateHeure);
+
+            // 1 bis. Un seul rendez-vous à venir par spécialité (demande de l'auteur). Le verrou sur le
+            // patient empêche deux réservations simultanées de contourner la règle.
+            User::whereKey($patient->id)->lockForUpdate()->first();
+            if ($this->aUnRendezVousAVenir($patient, $medecin->specialite_id)) {
+                throw ValidationException::withMessages(['medecin_id' => sprintf(
+                    "Vous avez déjà un rendez-vous à venir en %s. Modifiez-le ou annulez-le depuis « Mes rendez-vous » avant d'en prendre un autre.",
+                    $medecin->specialite->libelle,
+                )]);
+            }
 
             // 2. Insertion, statut « confirmé » (RG06).
             $rendezVous = RendezVous::create([
@@ -138,6 +149,19 @@ class RendezVousService
      * @param  callable(): T  $operation
      * @return T
      */
+    /**
+     * Rendez-vous encore actif dans la spécialité : « à reprogrammer », ou « confirmé » et pas encore
+     * passé (la tâche planifiée peut ne pas avoir encore marqué les rendez-vous passés).
+     */
+    public function aUnRendezVousAVenir(User $patient, int $specialiteId): bool
+    {
+        return RendezVous::where('patient_id', $patient->id)
+            ->where(fn ($q) => $q->where('statut', StatutRdv::AReprogrammer->value)
+                ->orWhere(fn ($q) => $q->where('statut', StatutRdv::Confirme->value)->where('date_heure', '>=', CarbonImmutable::now())))
+            ->whereHas('medecin', fn ($q) => $q->where('specialite_id', $specialiteId))
+            ->exists();
+    }
+
     private function dansUneTransaction(callable $operation): mixed
     {
         try {

@@ -16,20 +16,21 @@ class OrientationController extends Controller
 {
     public function __construct(private readonly OrientationService $orientation) {}
 
-    /** POST /api/orientation/verification (patient) : { specialite_id, motif, symptomes } */
+    /**
+     * POST /api/orientation/verification (patient) : { specialite_id, motif, symptomes }.
+     * `correspond` : false si le texte ne correspond pas à la spécialité choisie, null si on ne peut en juger.
+     */
     public function verifier(VerificationOrientationRequest $request): JsonResponse
     {
-        $resultat = $this->orientation->verifier(
-            $request->specialite(),
-            $request->validated('motif'),
-            $request->validated('symptomes'),
-        );
+        $arguments = [$request->specialite(), $request->validated('motif'), $request->validated('symptomes')];
+        $resultat = $this->orientation->verifier(...$arguments);
 
         return response()->json(['data' => [
             'suggestion' => $resultat === null ? null : [
                 'specialite' => new SpecialiteResource($resultat['specialite']),
                 'creneaux' => CreneauResource::collection($resultat['creneaux']),
             ],
+            'correspond' => $this->orientation->correspondALaSpecialite(...$arguments),
         ]]);
     }
 }

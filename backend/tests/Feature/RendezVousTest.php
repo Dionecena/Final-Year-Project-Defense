@@ -97,6 +97,40 @@ class RendezVousTest extends TestCase
         $this->assertDatabaseCount('preconsultations', 0);
     }
 
+    public function test_un_seul_rendez_vous_a_venir_par_specialite(): void
+    {
+        $this->reserver($this->patient, '2026-11-02 09:00')->assertCreated();
+
+        // Même spécialité, même ou autre médecin : refusé.
+        $this->reserver($this->patient, '2026-11-04 10:00')
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.medecin_id.0', "Vous avez déjà un rendez-vous à venir en Cardiologie. Modifiez-le ou annulez-le depuis « Mes rendez-vous » avant d'en prendre un autre.");
+        $this->reserver($this->patient, '2026-11-04 10:00', $this->medecinDisponible())->assertUnprocessable();
+
+        // Autre spécialité : permis.
+        $orl = $this->medecinDisponible(Specialite::where('libelle', 'ORL')->firstOrFail());
+        $this->reserver($this->patient, '2026-11-04 10:00', $orl)->assertCreated();
+
+        $this->assertDatabaseCount('rendez_vous', 2);
+    }
+
+    public function test_un_rendez_vous_annule_passe_ou_echu_ne_bloque_pas_la_specialite(): void
+    {
+        $this->rdv('2026-11-04 09:00', statut: StatutRdv::Annule);
+        $this->rdv('2026-10-28 09:00', statut: StatutRdv::Passe);
+        // Confirmé mais déjà dépassé (la tâche planifiée ne l'a pas encore marqué « passé »).
+        $this->rdv('2026-11-01 09:00');
+
+        $this->reserver($this->patient, '2026-11-02 09:00')->assertCreated();
+    }
+
+    public function test_un_rendez_vous_a_reprogrammer_bloque_la_specialite(): void
+    {
+        $this->rdv('2026-10-30 09:00', statut: StatutRdv::AReprogrammer);
+
+        $this->reserver($this->patient, '2026-11-02 09:00')->assertUnprocessable();
+    }
+
     public function test_t04_deux_reservations_du_meme_creneau(): void
     {
         $autre = User::factory()->create();

@@ -143,4 +143,65 @@ class AuthentificationTest extends TestCase
 
         $this->assertGuest('web');
     }
+
+    public function test_au_plus_trois_comptes_patients_par_appareil_et_par_heure(): void
+    {
+        $patients = User::factory()->count(4)->sequence(fn ($s) => ['email' => "patient{$s->index}@exemple.test", 'password' => 'motdepasse1'])->create();
+
+        foreach ($patients->take(3) as $patient) {
+            $this->postJson('/login', ['email' => $patient->email, 'password' => 'motdepasse1'])->assertOk();
+            $this->postJson('/logout')->assertOk();
+        }
+
+        // Quatrième compte différent depuis la même adresse IP : refusé, même avec le bon mot de passe.
+        $this->postJson('/login', ['email' => 'patient3@exemple.test', 'password' => 'motdepasse1'])
+            ->assertStatus(429)
+            ->assertJsonPath('errors.email.0', 'Trop de comptes différents ont été utilisés depuis cet appareil. Réessayez dans une heure.');
+        $this->assertGuest('web');
+
+        // Un compte déjà utilisé sur l'appareil peut toujours se reconnecter.
+        $this->postJson('/login', ['email' => 'patient0@exemple.test', 'password' => 'motdepasse1'])->assertOk();
+
+        // Une heure plus tard, la limite est levée.
+        $this->travel(61)->minutes();
+        $this->postJson('/logout');
+        $this->postJson('/login', ['email' => 'patient3@exemple.test', 'password' => 'motdepasse1'])->assertOk();
+    }
+
+    public function test_le_personnel_n_est_pas_limite_par_appareil(): void
+    {
+        $patients = User::factory()->count(3)->sequence(fn ($s) => ['email' => "patient{$s->index}@exemple.test", 'password' => 'motdepasse1'])->create();
+        foreach ($patients as $patient) {
+            $this->postJson('/login', ['email' => $patient->email, 'password' => 'motdepasse1'])->assertOk();
+            $this->postJson('/logout');
+        }
+
+        User::factory()->secretaire()->create(['email' => 'secretaire@exemple.test', 'password' => 'motdepasse1']);
+        $this->postJson('/login', ['email' => 'secretaire@exemple.test', 'password' => 'motdepasse1'])->assertOk();
+    }
+
+    public function test_l_inscription_compte_parmi_les_comptes_de_l_appareil(): void
+    {
+        foreach (range(1, 3) as $i) {
+            $this->withHeaders($this->enTetesSpa())
+                ->postJson('/api/inscription', $this->donneesInscription(['email' => "nouveau{$i}@exemple.test"]))
+                ->assertCreated();
+            $this->postJson('/logout');
+        }
+
+        $this->withHeaders($this->enTetesSpa())
+            ->postJson('/api/inscription', $this->donneesInscription(['email' => 'nouveau4@exemple.test']))
+            ->assertStatus(429);
+        $this->assertDatabaseMissing('users', ['email' => 'nouveau4@exemple.test']);
+    }
+
+    public function test_un_script_qui_change_d_adresse_est_freine_par_adresse_ip(): void
+    {
+        // 20 tentatives par minute depuis une même adresse IP, quelle que soit l'adresse électronique.
+        for ($i = 0; $i < 20; $i++) {
+            $this->postJson('/login', ['email' => "inconnu{$i}@exemple.test", 'password' => 'mauvais'])->assertUnprocessable();
+        }
+
+        $this->postJson('/login', ['email' => 'autre@exemple.test', 'password' => 'mauvais'])->assertStatus(429);
+    }
 }

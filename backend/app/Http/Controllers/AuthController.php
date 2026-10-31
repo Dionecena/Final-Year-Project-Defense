@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\ConnexionRequest;
 use App\Http\Requests\Auth\InscriptionRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\User;
+use App\Services\ComptesParAppareil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +18,11 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     /** POST /api/inscription : seul le patient crée lui-même son compte. */
-    public function inscription(InscriptionRequest $request): JsonResponse
+    public function inscription(InscriptionRequest $request, ComptesParAppareil $appareil): JsonResponse
     {
+        // Le nouveau compte est connecté aussitôt : il compte parmi les comptes de l'appareil.
+        abort_unless($appareil->autorise($request->ip()), 429, ComptesParAppareil::MESSAGE);
+
         $user = User::create($request->safe()->only(['nom', 'prenom', 'email', 'telephone', 'password']) + [
             'role' => Role::Patient->value,
             'actif' => true,
@@ -27,6 +31,7 @@ class AuthController extends Controller
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
+        $appareil->enregistrer($request->ip(), $user->id);
 
         return (new UtilisateurResource($user))->response()->setStatusCode(201);
     }

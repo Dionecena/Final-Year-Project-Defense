@@ -30,6 +30,20 @@ class OrientationService
     }
 
     /**
+     * Le motif et les symptômes correspondent-ils à la spécialité choisie (au moins un de ses termes) ?
+     * null si la configuration n'a aucun terme pour elle (médecine générale, pédiatrie) : rien ne permet
+     * d'en juger, aucun message n'est affiché. Demande de l'auteur, en complément de RG04.
+     */
+    public function correspondALaSpecialite(Specialite $choisie, string $motif, string $symptomes): ?bool
+    {
+        if (empty(config('orientation.regles', [])[$choisie->libelle] ?? [])) {
+            return null;
+        }
+
+        return array_key_exists($choisie->libelle, $this->correspondances($motif.' '.$symptomes));
+    }
+
+    /**
      * Aucune suggestion si aucune règle ne s'applique ou si la spécialité choisie fait partie des
      * correspondances ; sinon la spécialité qui a le plus de termes trouvés. En cas d'égalité, la
      * première dans l'ordre de config/orientation.php l'emporte (décision de l'auteur).

@@ -33,6 +33,13 @@ export default function PriseRendezVous() {
   const [preconsultation, setPreconsultation] = useState<SaisiePreconsultation | null>(null)
   const [erreursPreconsultation, setErreursPreconsultation] = useState<Record<string, string>>({})
   const [suggestion, setSuggestion] = useState<SuggestionOrientation | null>(null)
+  // false : le motif et les symptômes ne correspondent pas à la spécialité choisie (message indicatif).
+  const [correspond, setCorrespond] = useState<boolean | null>(null)
+  const etapeOrientation = suggestion !== null || correspond === false
+  // Spécialités où le patient a déjà un rendez-vous à venir : une seule réservation par spécialité
+  // (règle vérifiée par le serveur ; ici, le patient est prévenu dès l'étape 1).
+  const [specialitesOccupees, setSpecialitesOccupees] = useState<Set<number>>(new Set())
+  const dejaReserve = specialite !== null && specialitesOccupees.has(specialite.id)
 
   const { creneaux, erreur: erreurCreneaux, chargement, recharger } = useCreneauxSpecialite(etape >= 4 ? (specialite?.id ?? null) : null)
 
@@ -48,6 +55,25 @@ export default function PriseRendezVous() {
       .catch((err) => setErreurListe(messageErreur(err)))
   }, [params])
 
+  useEffect(() => {
+    // Heure de Dakar = UTC : les dates « AAAA-MM-JJ HH:MM » se comparent comme des chaînes.
+    const maintenant = new Date().toISOString().slice(0, 16).replace('T', ' ')
+    api
+      .get<{ data: RendezVous[] }>('/api/mes-rendez-vous')
+      .then(({ data }) =>
+        setSpecialitesOccupees(
+          new Set(
+            data.data
+              .filter((r) => r.statut === 'a_reprogrammer' || (r.statut === 'confirme' && r.date_heure >= maintenant))
+              .map((r) => r.specialite.id),
+          ),
+        ),
+      )
+      .catch(() => {
+        // Sans cette liste, le serveur refusera quand même une seconde réservation.
+      })
+  }, [])
+
   function aller(suivante: Etape) {
     setErreur(null)
     setEtape(suivante)
@@ -61,6 +87,7 @@ export default function PriseRendezVous() {
       // La préconsultation sera revérifiée pour la nouvelle spécialité.
       setPreconsultation(null)
       setSuggestion(null)
+      setCorrespond(null)
     }
     setSpecialite(s)
   }
@@ -69,11 +96,15 @@ export default function PriseRendezVous() {
   function passerPreconsultation() {
     setPreconsultation(null)
     setSuggestion(null)
+    setCorrespond(null)
     setErreursPreconsultation({})
     aller(4)
   }
 
-  /** Vérification d'orientation (section 8.3) : l'étape 3 n'apparaît qu'en cas de suggestion (RG04). */
+  /**
+   * Vérification d'orientation (section 8.3) : l'étape 3 n'apparaît qu'en cas de suggestion (RG04) ou si
+   * le motif et les symptômes ne correspondent pas à la spécialité choisie.
+   */
   async function validerPreconsultation(e: FormEvent) {
     e.preventDefault()
     if (!specialite) return
@@ -87,13 +118,14 @@ export default function PriseRendezVous() {
     }
     setEnvoi(true)
     try {
-      const { data } = await api.post<{ data: { suggestion: SuggestionOrientation | null } }>('/api/orientation/verification', {
-        specialite_id: specialite.id,
-        ...valeur,
-      })
+      const { data } = await api.post<{ data: { suggestion: SuggestionOrientation | null; correspond: boolean | null } }>(
+        '/api/orientation/verification',
+        { specialite_id: specialite.id, ...valeur },
+      )
       setPreconsultation(valeur)
       setSuggestion(data.data.suggestion)
-      aller(data.data.suggestion ? 3 : 4)
+      setCorrespond(data.data.correspond)
+      aller(data.data.suggestion || data.data.correspond === false ? 3 : 4)
     } catch (err) {
       const champs = erreursChamps(err)
       setErreursPreconsultation(champs)
@@ -111,6 +143,7 @@ export default function PriseRendezVous() {
     setMedecinId('')
     setCreneau(null)
     setSuggestion(null)
+    setCorrespond(null)
     // RG11 : la limite de la nouvelle spécialité peut être plus courte.
     if (preconsultation && preconsultation.symptomes.length > suggeree.max_symptomes) {
       setPreconsultation(null)
@@ -225,13 +258,24 @@ export default function PriseRendezVous() {
                     <span>
                       <span className="block font-semibold text-gray-900">{s.libelle}</span>
                       {s.description && <span className="block text-sm text-gray-600">{s.description}</span>}
+                      {specialitesOccupees.has(s.id) && <span className="mt-1 block text-xs font-medium text-amber-800">Rendez-vous déjà prévu</span>}
                     </span>
                   </label>
                 ))}
               </div>
             </fieldset>
           )}
-          <Bouton onClick={() => aller(2)} disabled={!specialite}>
+          {dejaReserve && (
+            <Alerte>
+              Vous avez déjà un rendez-vous à venir en {specialite.libelle}. Vous ne pouvez avoir qu'un rendez-vous à la fois par spécialité :
+              modifiez-le ou annulez-le depuis{' '}
+              <Link to="/patient/mes-rendez-vous" className="font-semibold underline">
+                Mes rendez-vous
+              </Link>
+              .
+            </Alerte>
+          )}
+          <Bouton onClick={() => aller(2)} disabled={!specialite || dejaReserve}>
             Continuer
           </Bouton>
         </div>
@@ -310,40 +354,59 @@ export default function PriseRendezVous() {
         </form>
       )}
 
-      {etape === 3 && specialite && suggestion && (
+      {etape === 3 && specialite && etapeOrientation && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900">3. Suggestion d'orientation</h2>
-          <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
-            <p className="text-gray-900">
-              D'après le motif et les symptômes indiqués, la spécialité <strong>{suggestion.specialite.libelle}</strong> pourrait mieux
-              correspondre à votre demande que <strong>{specialite.libelle}</strong>. Cette suggestion est indicative : vous pouvez
-              conserver votre choix.
-            </p>
+          <h2 className="text-lg font-bold text-gray-900">3. {suggestion ? "Suggestion d'orientation" : 'Vérification du motif'}</h2>
+          <div role="alert" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+            {correspond === false && (
+              <p className="font-semibold text-gray-900">
+                Le motif et les symptômes indiqués ne correspondent pas à la spécialité {specialite.libelle}.
+              </p>
+            )}
+            {suggestion ? (
+              <p className="text-gray-900">
+                D'après le motif et les symptômes indiqués, la spécialité <strong>{suggestion.specialite.libelle}</strong> pourrait mieux
+                correspondre à votre demande que <strong>{specialite.libelle}</strong>. Cette suggestion est indicative : vous pouvez
+                conserver votre choix.
+              </p>
+            ) : (
+              <p className="text-gray-900">
+                Vérifiez votre saisie ou choisissez une autre spécialité. Vous pouvez aussi conserver votre choix : le médecin lira votre
+                préconsultation.
+              </p>
+            )}
             {/* RG03 */}
             <p className="text-sm font-medium text-amber-900">{MENTION_NON_DIAGNOSTIC}</p>
           </div>
-          <div>
-            <h3 className="mb-2 font-semibold text-gray-900">Prochains créneaux en {suggestion.specialite.libelle}</h3>
-            {suggestion.creneaux.length === 0 ? (
-              <p className="text-sm text-gray-700">Aucun créneau libre n'est proposé en ligne pour le moment dans cette spécialité.</p>
-            ) : (
-              <ul className="space-y-1">
-                {suggestion.creneaux.map((c) => (
-                  <li key={`${c.medecin.id}-${c.date_heure}`} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900">
-                    <span className="font-medium first-letter:uppercase">{libelleRendezVous(c)}</span> – {nomMedecin(c.medecin)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {suggestion && (
+            <div>
+              <h3 className="mb-2 font-semibold text-gray-900">Prochains créneaux en {suggestion.specialite.libelle}</h3>
+              {suggestion.creneaux.length === 0 ? (
+                <p className="text-sm text-gray-700">Aucun créneau libre n'est proposé en ligne pour le moment dans cette spécialité.</p>
+              ) : (
+                <ul className="space-y-1">
+                  {suggestion.creneaux.map((c) => (
+                    <li key={`${c.medecin.id}-${c.date_heure}`} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900">
+                      <span className="font-medium first-letter:uppercase">{libelleRendezVous(c)}</span> – {nomMedecin(c.medecin)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <Bouton variante="secondaire" onClick={() => aller(2)}>
-              Retour
+              {suggestion ? 'Retour' : 'Modifier ma préconsultation'}
             </Bouton>
-            <Bouton variante="secondaire" onClick={() => aller(4)}>
+            {!suggestion && (
+              <Bouton variante="secondaire" onClick={() => aller(1)}>
+                Changer de spécialité
+              </Bouton>
+            )}
+            <Bouton variante={suggestion ? 'secondaire' : 'primaire'} onClick={() => aller(4)}>
               Conserver ma spécialité
             </Bouton>
-            <Bouton onClick={suivreSuggestion}>Choisir la spécialité suggérée</Bouton>
+            {suggestion && <Bouton onClick={suivreSuggestion}>Choisir la spécialité suggérée</Bouton>}
           </div>
         </div>
       )}
@@ -375,7 +438,7 @@ export default function PriseRendezVous() {
             )
           )}
           <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-gray-200 bg-gray-50/95 py-3">
-            <Bouton variante="secondaire" onClick={() => aller(suggestion ? 3 : 2)}>
+            <Bouton variante="secondaire" onClick={() => aller(etapeOrientation ? 3 : 2)}>
               Retour
             </Bouton>
             <Bouton onClick={() => aller(5)} disabled={!creneau}>
