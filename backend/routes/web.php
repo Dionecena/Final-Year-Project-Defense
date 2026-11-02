@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'connexion']);
 Route::post('/logout', [AuthController::class, 'deconnexion'])->middleware('auth:web');
 
+// Soutenance uniquement (DEMO_SECRETARIAT) : GET indique si la démonstration est ouverte, POST connecte.
+Route::get('/demo/secretariat', [AuthController::class, 'demoSecretariatDisponible']);
+Route::post('/demo/secretariat', [AuthController::class, 'demoSecretariat'])->middleware('throttle:20,1');
+
 /*
 | Démonstration : la SPA React compilée (npm run build) est servie par Laravel depuis
 | public/spa. Toute URL qui n'est ni l'API ni Sanctum renvoie index.html, et React

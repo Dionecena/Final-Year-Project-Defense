@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\ComptesParAppareil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -45,6 +46,35 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return new UtilisateurResource($user->load('medecin.specialite'));
+    }
+
+    /** GET /demo/secretariat : 204 si la connexion de démonstration est ouverte, 404 sinon. */
+    public function demoSecretariatDisponible(): Response
+    {
+        $this->compteDemoSecretariat();
+
+        return response()->noContent();
+    }
+
+    /** POST /demo/secretariat : connexion d'un clic au compte secrétaire de démonstration. */
+    public function demoSecretariat(Request $request): UtilisateurResource
+    {
+        $user = $this->compteDemoSecretariat();
+
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
+
+        return new UtilisateurResource($user);
+    }
+
+    /** Compte désigné par DEMO_SECRETARIAT : une secrétaire active, sinon 404. */
+    private function compteDemoSecretariat(): User
+    {
+        $email = config('clinique.demo_secretariat');
+        $user = $email ? User::where('email', $email)->where('role', Role::Secretaire->value)->where('actif', true)->first() : null;
+        abort_if($user === null, 404);
+
+        return $user;
     }
 
     /** POST /logout */

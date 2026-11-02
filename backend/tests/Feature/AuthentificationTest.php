@@ -204,4 +204,39 @@ class AuthentificationTest extends TestCase
 
         $this->postJson('/login', ['email' => 'autre@exemple.test', 'password' => 'mauvais'])->assertStatus(429);
     }
+
+    public function test_inscription_refuse_une_adresse_dont_le_domaine_n_existe_pas(): void
+    {
+        config(['clinique.verifier_domaine_email' => true]);
+
+        $this->withHeaders($this->enTetesSpa())
+            ->postJson('/api/inscription', $this->donneesInscription(['email' => 'patient@domaine-inexistant.invalid']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_connexion_de_demonstration_fermee_par_defaut(): void
+    {
+        User::factory()->secretaire()->create(['email' => 'secretaire.demo@exemple.test']);
+
+        $this->getJson('/demo/secretariat')->assertNotFound();
+        $this->postJson('/demo/secretariat')->assertNotFound();
+        $this->assertGuest('web');
+    }
+
+    public function test_connexion_de_demonstration_ouvre_le_seul_compte_secretaire_designe(): void
+    {
+        $secretaire = User::factory()->secretaire()->create(['email' => 'secretaire.demo@exemple.test']);
+        User::factory()->create(['email' => 'patient@exemple.test']);
+
+        config(['clinique.demo_secretariat' => 'patient@exemple.test']);
+        $this->postJson('/demo/secretariat')->assertNotFound();
+        $this->assertGuest('web');
+
+        config(['clinique.demo_secretariat' => 'secretaire.demo@exemple.test']);
+        $this->getJson('/demo/secretariat')->assertNoContent();
+        $this->postJson('/demo/secretariat')->assertOk()->assertJsonPath('data.role', 'secretaire');
+        $this->assertAuthenticatedAs($secretaire, 'web');
+    }
 }

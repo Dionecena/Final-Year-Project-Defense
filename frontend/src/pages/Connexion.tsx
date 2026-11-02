@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Alerte, Bouton, Champ } from '../components/Formulaire'
@@ -15,16 +15,26 @@ export default function Connexion() {
   const [password, setPassword] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
+  // Soutenance : le serveur répond 204 seulement si la connexion de démonstration est ouverte.
+  const [demo, setDemo] = useState(false)
+
+  useEffect(() => {
+    api.get('/demo/secretariat').then(() => setDemo(true), () => setDemo(false))
+  }, [])
 
   if (utilisateur) return <Navigate to={ACCUEIL_ROLE[utilisateur.role]} replace />
 
   async function soumettre(e: FormEvent) {
     e.preventDefault()
+    await connecter(() => api.post('/login', { email, password }))
+  }
+
+  async function connecter(requete: () => Promise<unknown>) {
     setErreur(null)
     setEnvoi(true)
     try {
       await initialiserCsrf()
-      await api.post('/login', { email, password })
+      await requete()
       const connecte = await rafraichir()
       if (connecte) navigate(depuis ?? ACCUEIL_ROLE[connecte.role], { replace: true })
     } catch (err) {
@@ -47,6 +57,15 @@ export default function Connexion() {
           {envoi ? 'Connexion…' : 'Se connecter'}
         </Bouton>
       </form>
+      {demo && (
+        <div className="mt-4 rounded-xl border border-primaire-200 bg-primaire-50 p-5">
+          <h2 className="font-semibold text-gray-900">Démonstration</h2>
+          <p className="mt-1 text-sm text-gray-700">Découvrez l'espace de la secrétaire avec un compte de démonstration.</p>
+          <Bouton type="button" variante="secondaire" disabled={envoi} className="mt-3 w-full" onClick={() => connecter(() => api.post('/demo/secretariat'))}>
+            Découvrir l'espace secrétariat
+          </Bouton>
+        </div>
+      )}
       <p className="mt-4 text-sm text-gray-700">
         Pas encore de compte ?{' '}
         <Link to="/inscription" className="font-medium text-primaire-700 underline">
